@@ -1,0 +1,47 @@
+# Package Layout
+
+## Purpose
+
+This document defines the intended repository layout.
+
+## Required Layout
+
+```text
+sam3dbody/
+├── pyproject.toml
+├── README.md
+├── specs/
+├── src/
+│   └── sam3dbody/
+└── third_party/
+    └── sam-3d-body/
+```
+
+## Wrapper Package
+
+Project-owned Python code must live under:
+
+```text
+src/sam3dbody/
+```
+
+## Third-Party Code
+
+The upstream SAM 3D Body implementation must live under:
+
+```text
+third_party/sam-3d-body/
+```
+
+## Future Layout
+
+The project may later add:
+
+```text
+tests/
+docs/
+examples/
+scripts/
+```
+
+These directories should be added only when their responsibility is clear.
