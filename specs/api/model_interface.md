@@ -2,29 +2,82 @@
 
 ## Purpose
 
-This document records the initial direction for model-facing interfaces.
+This document defines the initial model-facing interface direction.
 
 ## Status
 
-Detailed model inference behavior is not specified yet.
+Detailed inference behavior is not fully specified yet.
 
-## Initial Direction
+This document defines the expected responsibilities and boundaries for the first wrapper model interface.
 
-The wrapper should provide a model interface that hides upstream implementation details from downstream projects.
+## Interface Responsibility
 
-The interface should make input and output coordinate conventions explicit before they are relied on by downstream projects.
+The wrapper model interface should hide upstream implementation details from downstream projects.
 
-The interface should avoid requiring downstream projects to understand upstream demo script internals.
+Downstream projects should not need to understand upstream demo script internals, repository paths, or ad hoc runtime setup.
 
-## Future Topics
+## Initial Model Object
 
-Future specifications should define:
+The initial model interface should be centered on a wrapper-owned model object.
 
-* model weight discovery
-* model initialization
-* device selection
-* image preprocessing expectations
-* output schema
-* coordinate systems
-* batching behavior
-* error handling
+The preferred public shape is:
+
+```python
+model = Sam3DBodyModel.from_pretrained(...)
+result = model.predict(image)
+```
+
+The model object is responsible for:
+
+* loading or initializing upstream model components
+* selecting the execution device
+* applying wrapper-defined input normalization rules
+* invoking the upstream implementation through an internal adapter
+* converting upstream outputs into wrapper-owned result objects
+
+## Construction Requirements
+
+Model construction should make the following choices explicit:
+
+* model weights location
+* execution device
+* optional configuration values
+* cache or temporary directory behavior, if needed
+
+Implicit global setup should be avoided when practical.
+
+## Prediction Requirements
+
+Prediction methods should accept image input through documented input forms.
+
+The initial implementation may support only one image input form, but the supported form must be documented before downstream use.
+
+Prediction methods should return wrapper-owned result objects defined by the output data model specification.
+
+Prediction methods should not return raw upstream dictionaries as the default public result.
+
+## Coordinate and Image Convention Requirements
+
+Input image convention must be explicit before results are consumed by downstream projects.
+
+The model interface specification or a later coordinate-system specification must define:
+
+* accepted image array layout
+* color channel convention
+* image coordinate origin
+* coordinate units
+* whether outputs refer to original input image coordinates or preprocessed model coordinates
+
+Until these conventions are specified, downstream projects should treat inference outputs as experimental.
+
+## Batching Policy
+
+Single-image inference should be specified before batch inference.
+
+Batch inference may be added later, but must define ordering, error handling, and result grouping before being treated as stable.
+
+## Error Handling Policy
+
+The wrapper should prefer explicit wrapper-owned exceptions or clear Python exceptions over leaking obscure upstream failures.
+
+Detailed exception classes are not specified yet.

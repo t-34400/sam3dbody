@@ -18,6 +18,8 @@ This file is a navigation document. It must not define behavioral requirements.
 * [api/public_api.md](api/public_api.md)
 * [api/cli.md](api/cli.md)
 * [api/model_interface.md](api/model_interface.md)
+* [api/output_data_model.md](api/output_data_model.md)
+* [api/inference_pipeline.md](api/inference_pipeline.md)
 
 ## Development
 
