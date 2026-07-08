@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Self
+from typing import Any
 
 from .exceptions import Sam3DBodyNotImplementedError
 from .result import Sam3DBodyResult
@@ -29,7 +29,7 @@ class Sam3DBodyModel:
         *,
         device: str | None = None,
         config: dict[str, Any] | None = None,
-    ) -> Self:
+    ) -> "Sam3DBodyModel":
         """Create a wrapper model handle from explicit model settings."""
         resolved_weights = Path(weights_path) if weights_path is not None else None
         copied_config = dict(config) if config is not None else None

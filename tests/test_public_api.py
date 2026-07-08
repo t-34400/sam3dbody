@@ -58,3 +58,11 @@ def test_predict_reports_missing_inference_adapter() -> None:
 
     with pytest.raises(Sam3DBodyNotImplementedError):
         model.predict(object())
+
+
+def test_python310_compatible_typing() -> None:
+    model_source = Path("src/sam3dbody/model.py").read_text()
+
+    assert "typing import Any, Self" not in model_source
+    assert "typing import Self" not in model_source
+    assert "-> Self" not in model_source
