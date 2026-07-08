@@ -81,3 +81,9 @@ Batch inference may be added later, but must define ordering, error handling, an
 The wrapper should prefer explicit wrapper-owned exceptions or clear Python exceptions over leaking obscure upstream failures.
 
 Detailed exception classes are not specified yet.
+
+## Initial Skeleton Behavior
+
+Until the upstream inference adapter is implemented, the public model object may be constructible without running inference.
+
+Calling prediction before the adapter is available must fail explicitly through a wrapper-owned exception rather than silently returning incomplete results.
