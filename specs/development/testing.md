@@ -20,3 +20,16 @@ Initial tests should verify:
 * public API surface
 * CLI availability if a CLI is provided
 * wrapper boundary behavior
+
+## Test Organization
+
+Tests should be grouped by observable responsibility.
+
+Preferred test modules include:
+
+* `test_public_api.py` for import behavior and public API contracts
+* `test_cli.py` for command line behavior
+* `test_dependencies.py` for upstream dependency inspection behavior
+* `test_packaging.py` for source archive and generated artifact rules
+
+Avoid accumulating unrelated test responsibilities in a single large test file.
