@@ -32,3 +32,11 @@ Excluded artifacts include at least:
 
 Generated artifacts should be recreated by local tooling rather than stored in source archives.
 
+## Source Archive Creation
+
+Source archives must be created through the repository packaging script once that script exists.
+
+The packaging script must exclude generated artifacts documented in this release policy.
+
+Manual zip creation is discouraged because it can accidentally include local cache or build outputs.
+

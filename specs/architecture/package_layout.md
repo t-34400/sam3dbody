@@ -11,6 +11,7 @@ sam3dbody/
 ├── pyproject.toml
 ├── README.md
 ├── specs/
+├── scripts/
 ├── src/
 │   └── sam3dbody/
 └── third_party/
@@ -41,13 +42,20 @@ third_party/sam-3d-body/
 
 ## Future Layout
 
-The project may later add:
+The project includes:
 
 ```text
 tests/
+scripts/
+```
+
+The `scripts/` directory contains repository maintenance tools.
+
+The project may later add:
+
+```text
 docs/
 examples/
-scripts/
 ```
 
 These directories should be added only when their responsibility is clear.

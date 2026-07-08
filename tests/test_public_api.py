@@ -109,3 +109,27 @@ def test_upstream_dependency_report_is_serializable() -> None:
 
     assert isinstance(payload["repository_root"], str)
     assert isinstance(payload["external_modules"], list)
+
+def test_source_packaging_script_excludes_generated_artifacts(tmp_path: Path) -> None:
+    from scripts.package_source import create_source_archive
+    from zipfile import ZipFile
+
+    Path("src/sam3dbody/__pycache__").mkdir(parents=True, exist_ok=True)
+    Path("src/sam3dbody/__pycache__/generated.pyc").write_bytes(b"cache")
+    Path(".pytest_cache").mkdir(exist_ok=True)
+    Path(".pytest_cache/README.md").write_text("cache")
+    Path("src/sam3dbody.egg-info").mkdir(exist_ok=True)
+    Path("src/sam3dbody.egg-info/PKG-INFO").write_text("metadata")
+
+    archive_path = tmp_path / "source.zip"
+    create_source_archive(Path.cwd(), archive_path)
+
+    with ZipFile(archive_path) as archive:
+        names = archive.namelist()
+
+    assert not any("__pycache__" in name for name in names)
+    assert not any(".pytest_cache" in name for name in names)
+    assert not any(name.endswith(".pyc") for name in names)
+    assert not any(".egg-info" in name for name in names)
+    assert "scripts/package_source.py" in names
+
