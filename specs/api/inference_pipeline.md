@@ -52,6 +52,8 @@ Calls into `third_party/sam-3d-body` should be concentrated in wrapper-owned ada
 
 The adapter boundary should absorb upstream path, import, configuration, and result-format quirks.
 
+The initial adapter implementation may only locate the upstream source tree and provide an explicit not-implemented prediction boundary. It must not perform real inference until the upstream call contract and output conversion rules are specified.
+
 ## Postprocessing Policy
 
 Postprocessing should convert upstream outputs into wrapper-owned result objects.

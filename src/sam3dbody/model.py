@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .exceptions import Sam3DBodyNotImplementedError
+from .adapters.upstream import Sam3DBodyUpstreamAdapter
 from .result import Sam3DBodyResult
 
 
@@ -21,6 +21,7 @@ class Sam3DBodyModel:
     weights_path: Path | None = None
     device: str | None = None
     config: dict[str, Any] | None = None
+    adapter: Sam3DBodyUpstreamAdapter | None = None
 
     @classmethod
     def from_pretrained(
@@ -33,7 +34,12 @@ class Sam3DBodyModel:
         """Create a wrapper model handle from explicit model settings."""
         resolved_weights = Path(weights_path) if weights_path is not None else None
         copied_config = dict(config) if config is not None else None
-        return cls(weights_path=resolved_weights, device=device, config=copied_config)
+        return cls(
+            weights_path=resolved_weights,
+            device=device,
+            config=copied_config,
+            adapter=Sam3DBodyUpstreamAdapter.from_source_tree(),
+        )
 
     def predict(self, image: Any) -> Sam3DBodyResult:
         """Run single-image prediction.
@@ -41,6 +47,8 @@ class Sam3DBodyModel:
         Actual upstream inference is intentionally not implemented in this
         initial package skeleton.
         """
-        raise Sam3DBodyNotImplementedError(
-            "SAM 3D Body inference adapter is not implemented yet."
-        )
+        if self.adapter is None:
+            adapter = Sam3DBodyUpstreamAdapter.from_source_tree()
+        else:
+            adapter = self.adapter
+        return adapter.predict(image)

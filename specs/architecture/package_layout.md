@@ -25,6 +25,12 @@ Project-owned Python code must live under:
 src/sam3dbody/
 ```
 
+Wrapper-owned upstream integration modules must live under:
+
+```text
+src/sam3dbody/adapters/
+```
+
 ## Third-Party Code
 
 The upstream SAM 3D Body implementation must live under:

@@ -73,3 +73,18 @@ def test_gitignore_excludes_generated_artifacts() -> None:
 
     for pattern in ("__pycache__/", ".pytest_cache/", "*.egg-info/", "build/", "dist/"):
         assert pattern in gitignore
+
+
+def test_model_uses_upstream_adapter_boundary() -> None:
+    model = Sam3DBodyModel.from_pretrained(device="cpu")
+
+    assert model.adapter is not None
+    assert model.adapter.repository.root.as_posix().endswith("third_party/sam-3d-body")
+    assert model.adapter.repository.exists
+
+
+def test_public_model_does_not_import_third_party_directly() -> None:
+    model_source = Path("src/sam3dbody/model.py").read_text()
+
+    assert "third_party" not in model_source
+    assert "sam-3d-body" not in model_source
