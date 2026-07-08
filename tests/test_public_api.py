@@ -66,3 +66,10 @@ def test_python310_compatible_typing() -> None:
     assert "typing import Any, Self" not in model_source
     assert "typing import Self" not in model_source
     assert "-> Self" not in model_source
+
+
+def test_gitignore_excludes_generated_artifacts() -> None:
+    gitignore = Path(".gitignore").read_text()
+
+    for pattern in ("__pycache__/", ".pytest_cache/", "*.egg-info/", "build/", "dist/"):
+        assert pattern in gitignore
