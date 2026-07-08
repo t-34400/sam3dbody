@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from sam3dbody.exceptions import Sam3DBodyNotImplementedError
+from .dependencies import UpstreamDependencyReport, inspect_upstream_dependencies
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,10 @@ class Sam3DBodyUpstreamAdapter:
     def from_source_tree(cls) -> "Sam3DBodyUpstreamAdapter":
         """Create an adapter for the default source-tree upstream location."""
         return cls(repository=Sam3DBodyUpstreamRepository.from_source_tree())
+
+    def inspect_dependencies(self) -> UpstreamDependencyReport:
+        """Return a static dependency report for the upstream source tree."""
+        return inspect_upstream_dependencies(self.repository.root)
 
     def predict(self, image: Any) -> Any:
         """Call upstream inference once the integration contract is specified."""

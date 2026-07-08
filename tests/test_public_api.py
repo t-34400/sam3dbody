@@ -88,3 +88,24 @@ def test_public_model_does_not_import_third_party_directly() -> None:
 
     assert "third_party" not in model_source
     assert "sam-3d-body" not in model_source
+
+
+def test_upstream_dependency_inspection_is_static() -> None:
+    from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
+
+    report = Sam3DBodyUpstreamAdapter.from_source_tree().inspect_dependencies()
+
+    assert report.files_scanned > 0
+    assert "torch" in report.external_modules
+    assert "cv2" in report.external_modules
+    assert "sam_3d_body" in report.import_modules
+    assert "sam_3d_body" not in report.external_modules
+
+
+def test_upstream_dependency_report_is_serializable() -> None:
+    from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
+
+    payload = Sam3DBodyUpstreamAdapter.from_source_tree().inspect_dependencies().to_dict()
+
+    assert isinstance(payload["repository_root"], str)
+    assert isinstance(payload["external_modules"], list)

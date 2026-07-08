@@ -26,6 +26,7 @@ This file is a navigation document. It must not define behavioral requirements.
 * [development/coding.md](development/coding.md)
 * [development/testing.md](development/testing.md)
 * [development/release.md](development/release.md)
+* [development/dependencies.md](development/dependencies.md)
 
 ## Decision Records
 
