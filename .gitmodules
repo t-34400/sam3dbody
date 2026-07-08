@@ -1,0 +1,3 @@
+[submodule "third_party/sam-3d-body"]
+	path = third_party/sam-3d-body
+	url = https://github.com/t-34400/sam-3d-body.git
