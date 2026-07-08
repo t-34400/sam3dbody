@@ -44,6 +44,11 @@ class Sam3DBodyUpstreamAdapter:
         """Create an adapter for the default source-tree upstream location."""
         return cls(repository=Sam3DBodyUpstreamRepository.from_source_tree())
 
+    @classmethod
+    def from_repository_root(cls, repository_root: str | Path) -> "Sam3DBodyUpstreamAdapter":
+        """Create an adapter for an explicit upstream source-tree location."""
+        return cls(repository=Sam3DBodyUpstreamRepository(root=Path(repository_root)))
+
     def inspect_dependencies(self) -> UpstreamDependencyReport:
         """Return a static dependency report for the upstream source tree."""
         return inspect_upstream_dependencies(self.repository.root)

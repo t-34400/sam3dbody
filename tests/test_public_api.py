@@ -133,3 +133,39 @@ def test_source_packaging_script_excludes_generated_artifacts(tmp_path: Path) ->
     assert not any(".egg-info" in name for name in names)
     assert "scripts/package_source.py" in names
 
+def test_upstream_adapter_accepts_explicit_repository_root(tmp_path: Path) -> None:
+    from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
+
+    upstream_root = tmp_path / "sam-3d-body"
+    upstream_root.mkdir()
+    (upstream_root / "sample.py").write_text("import torch\n")
+
+    report = Sam3DBodyUpstreamAdapter.from_repository_root(upstream_root).inspect_dependencies()
+
+    assert report.repository_root == upstream_root
+    assert report.external_modules == ("torch",)
+
+
+def test_cli_inspect_deps_outputs_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    import json
+
+    from sam3dbody.cli import main
+
+    upstream_root = tmp_path / "sam-3d-body"
+    upstream_root.mkdir()
+    (upstream_root / "sample.py").write_text("import torch\nimport cv2\n")
+
+    exit_code = main(["inspect-deps", "--upstream-root", str(upstream_root), "--json"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["repository_root"] == str(upstream_root)
+    assert payload["external_modules"] == ["cv2", "torch"]
+
+
+def test_pyproject_exposes_valid_cli_entrypoint() -> None:
+    pyproject = Path("pyproject.toml").read_text()
+
+    assert "[project.scripts]" in pyproject
+    assert 'sam3dbody = "sam3dbody.cli:main"' in pyproject
+
