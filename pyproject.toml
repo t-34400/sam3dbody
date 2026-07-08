@@ -9,6 +9,41 @@ authors = [
 requires-python = ">=3.10"
 dependencies = []
 
+
+[project.optional-dependencies]
+inference = [
+    "pytorch-lightning",
+    "pyrender",
+    "opencv-python",
+    "yacs",
+    "scikit-image",
+    "einops",
+    "timm",
+    "dill",
+    "pandas",
+    "rich",
+    "hydra-core",
+    "hydra-submitit-launcher",
+    "hydra-colorlog",
+    "pyrootutils",
+    "webdataset",
+    "chump",
+    "networkx==3.2.1",
+    "roma",
+    "joblib",
+    "appdirs",
+    "ffmpeg",
+    "cython",
+    "jsonlines",
+    "xtcocotools",
+    "loguru",
+    "optree",
+    "fvcore",
+    "pycocotools",
+    "tensorboard",
+    "huggingface_hub",
+]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
