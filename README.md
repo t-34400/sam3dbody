@@ -12,6 +12,22 @@ The core project policy is:
 - prepare upstream source explicitly after wrapper installation;
 - install Torch-family dependencies explicitly for the target CUDA environment.
 
+
+
+## Architecture
+
+```text
+          +-------------------+
+          | Your application  |
+          +---------+---------+
+                    |
+                    v
+            sam3dbody wrapper
+               /           \
+              v             v
+     Upstream source   Torch / CUDA
+```
+
 ## Quick Start
 
 ```bash
@@ -19,8 +35,8 @@ uv venv --python 3.10 .venv
 source .venv/bin/activate
 uv pip install git+https://github.com/t-34400/sam3dbody.git
 
-sam3dbody check-env
 sam3dbody install-upstream
+sam3dbody check-env
 
 # Choose the Torch command that matches your CUDA / driver / platform first.
 # Example only; use the official PyTorch selector for the real command.
@@ -170,6 +186,18 @@ sam3dbody check-env \
 ```
 
 Model checkpoints and MHR assets are not bundled into this wrapper. Provide them explicitly after downloading the official files through approved Hugging Face access.
+
+
+
+## CLI commands
+
+| Command | Purpose |
+| --- | --- |
+| `check-env` | Diagnose the installation and runtime environment |
+| `plan-upstream-setup` | Show where the upstream source will be installed |
+| `install-upstream` | Prepare the upstream source tree |
+| `infer` | Run inference |
+| `smoke-test` | Validate the complete installation |
 
 ## Python API
 
