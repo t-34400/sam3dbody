@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .adapters.upstream import Sam3DBodyUpstreamAdapter
+from .adapters.loader import Sam3DBodyLoadConfig, Sam3DBodyLoadedModel
 from .result import Sam3DBodyResult
 
 
@@ -40,6 +41,19 @@ class Sam3DBodyModel:
             config=copied_config,
             adapter=Sam3DBodyUpstreamAdapter.from_source_tree(),
         )
+
+    def load(self) -> Sam3DBodyLoadedModel:
+        """Load upstream model weights without running prediction."""
+        if self.weights_path is None:
+            raise ValueError("weights_path is required to load SAM 3D Body upstream weights.")
+        adapter = self.adapter or Sam3DBodyUpstreamAdapter.from_source_tree()
+        load_config = Sam3DBodyLoadConfig.from_values(
+            self.weights_path,
+            device=self.device,
+            mhr_path=self.config.get("mhr_path") if self.config else None,
+            extra=self.config,
+        )
+        return adapter.load(load_config)
 
     def predict(self, image: Any) -> Sam3DBodyResult:
         """Run single-image prediction.

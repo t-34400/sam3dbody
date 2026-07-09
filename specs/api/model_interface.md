@@ -46,6 +46,8 @@ Model construction should make the following choices explicit:
 
 Implicit global setup should be avoided when practical.
 
+Model construction may create a wrapper-owned handle without immediately loading upstream weights. Loading upstream weights should be explicit and may be exposed through `load()` before prediction is implemented.
+
 ## Prediction Requirements
 
 Prediction methods should accept image input through documented input forms.

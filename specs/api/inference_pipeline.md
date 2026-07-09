@@ -52,7 +52,11 @@ Calls into `third_party/sam-3d-body` should be concentrated in wrapper-owned ada
 
 The adapter boundary should absorb upstream path, import, configuration, and result-format quirks.
 
-The initial adapter implementation may only locate the upstream source tree and provide an explicit not-implemented prediction boundary. It must not perform real inference until the upstream call contract and output conversion rules are specified.
+The adapter may implement an upstream loader before prediction is implemented. The loader may resolve the upstream repository, temporarily expose it on `sys.path`, import the upstream model builder lazily, and call the upstream model-loading function with explicit checkpoint, device, and MHR asset settings.
+
+The loader must not run image inference. It returns a wrapper-owned load result containing opaque upstream model/config objects and the resolved load settings.
+
+Prediction must remain explicitly not implemented until the upstream call contract and output conversion rules are specified.
 
 ## Postprocessing Policy
 

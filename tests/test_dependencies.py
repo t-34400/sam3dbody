@@ -69,3 +69,14 @@ def test_platform_specific_upstream_dependencies_are_not_base_requirements() -> 
     assert "torch" not in base_dependencies
     assert "detectron2" not in inference
     assert not any("git+https://github.com/facebookresearch/sam3" in dep for dep in inference)
+
+
+def test_observed_optional_logging_packages_are_not_base_requirements() -> None:
+    text = _read_pyproject()
+    base_dependencies = _extract_toml_array(text, "dependencies")
+    inference = _extract_toml_array(text, "inference")
+
+    assert "wandb" not in base_dependencies
+    assert "seaborn" not in base_dependencies
+    assert "wandb" not in inference
+    assert "seaborn" not in inference

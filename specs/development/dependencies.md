@@ -72,6 +72,14 @@ The `inference` extra is allowed to be incomplete with respect to non-PyPI or pl
 
 The `inference` extra is a wrapper-owned installation convenience, not a guarantee that model inference will run without separately installed platform-specific dependencies and checkpoint access.
 
+### Observed optional upstream packages
+
+Static inspection of the current upstream source shows that `wandb` is imported only inside logging helper methods under the upstream Lightning base module. It is not part of the wrapper base dependency set.
+
+`seaborn` is listed in the upstream installation guide but is not imported by the current upstream Python source tree. It is not part of the wrapper base dependency set.
+
+These packages may be added to a future development, training, logging, or visualization extra if wrapper-owned behavior requires them.
+
 ## Dependency Declaration Requirements
 
 Base dependencies in `pyproject.toml` must stay empty unless wrapper-owned runtime code requires a dependency for import-time or non-inference behavior.
