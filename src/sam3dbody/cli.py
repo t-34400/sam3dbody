@@ -10,7 +10,7 @@ from typing import Any, Sequence
 from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
 from sam3dbody.environment import check_environment
 from sam3dbody.model import Sam3DBodyModel
-from sam3dbody.upstream_setup import plan_upstream_setup
+from sam3dbody.upstream_setup import install_upstream_source, plan_upstream_setup
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -101,6 +101,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="print the setup plan as JSON",
     )
 
+    install_setup = subcommands.add_parser(
+        "install-upstream",
+        help="clone or update the upstream SAM 3D Body source tree",
+    )
+    install_setup.add_argument(
+        "--target",
+        type=Path,
+        default=None,
+        help="target directory for the upstream sam-3d-body source tree",
+    )
+    install_setup.add_argument(
+        "--source-url",
+        default="https://github.com/facebookresearch/sam-3d-body.git",
+        help="Git URL used when cloning the upstream repository",
+    )
+    install_setup.add_argument(
+        "--revision",
+        default=None,
+        help="optional upstream Git revision to check out after cloning",
+    )
+    install_setup.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="skip recursive submodule initialization",
+    )
+    install_setup.add_argument(
+        "--json",
+        action="store_true",
+        help="print the install result as JSON",
+    )
+
     infer = subcommands.add_parser(
         "infer",
         help="run single-image SAM 3D Body inference",
@@ -187,6 +218,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "plan-upstream-setup":
         return _run_plan_upstream_setup(args)
 
+    if args.command == "install-upstream":
+        return _run_install_upstream(args)
+
     if args.command == "infer":
         return _run_infer(args)
 
@@ -271,6 +305,35 @@ def _run_plan_upstream_setup(args: argparse.Namespace) -> int:
         else:
             print("commands: none")
     return 0
+
+
+def _run_install_upstream(args: argparse.Namespace) -> int:
+    result = install_upstream_source(
+        target=args.target,
+        source_url=args.source_url,
+        revision=args.revision,
+        recursive=not args.no_recursive,
+    )
+    payload = result.to_dict()
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(f"target: {payload['target']}")
+        print(f"source_url: {payload['source_url']}")
+        print(f"revision: {payload['revision']}")
+        print(f"recursive: {payload['recursive']}")
+        print(f"before_status: {payload['before_status']}")
+        print(f"status: {payload['status']}")
+        print(f"success: {payload['success']}")
+        print(f"message: {payload['message']}")
+        commands = payload.get("commands_run", [])
+        if commands:
+            print("commands_run:")
+            for command in commands:
+                print(f"  - {command}")
+        else:
+            print("commands_run: none")
+    return 0 if result.success else 1
 
 
 def _run_infer(args: argparse.Namespace) -> int:

@@ -54,16 +54,19 @@ should be treated as wrapper package installation only. They must not be documen
 
 The project must not rely on `pip install git+...` to populate `third_party/sam-3d-body/`.
 
-## Future Upstream Setup TODO
+## Upstream Source Setup
 
-Before documenting Git URL installation as an inference-ready workflow, define and implement an explicit upstream setup path. Candidate approaches include:
+Installing the wrapper from a Git URL remains wrapper-only installation. Real inference additionally requires explicit upstream source setup.
 
-* a setup CLI such as `sam3dbody install-upstream`;
-* a documented manual `git submodule update --init --recursive` workflow for source checkouts;
-* a cache-based external upstream clone managed by the wrapper;
-* vendoring upstream source into distributable archives if license and maintenance requirements allow it.
+The initial supported explicit setup path is:
 
-The selected approach must specify:
+```bash
+sam3dbody install-upstream
+```
+
+This command prepares upstream source code under the development-layout target by default. It does not make the environment inference-ready by itself because checkpoints, MHR assets, platform-specific dependencies, and CUDA availability remain separate requirements.
+
+The selected approach specifies:
 
 * where upstream source is stored;
 * how upstream version compatibility is verified;
@@ -71,9 +74,9 @@ The selected approach must specify:
 * whether checkpoints and MHR assets are downloaded, discovered, or supplied explicitly;
 * how source archives and wheels avoid accidentally depending on uninitialized Git submodules.
 
-Until this TODO is resolved, source checkouts with initialized submodules are the only supported development layout for upstream integration work.
+Source checkouts with initialized submodules remain a supported development layout for upstream integration work. Git URL installs should document `sam3dbody install-upstream` as the explicit source setup step rather than implying that packaging tools initialize submodules automatically.
 
-A diagnostic command may report missing upstream source, missing checkpoints, missing inference dependencies, and CUDA availability. Such diagnostics do not satisfy this TODO unless they also define and implement the setup or download behavior.
+A diagnostic command may report missing upstream source, missing checkpoints, missing inference dependencies, and CUDA availability. Such diagnostics are validation aids and do not download assets or install dependencies.
 
 For CI or scripted validation, diagnostic commands may provide a strict mode that returns a non-zero exit status when required inference prerequisites are missing. Strict diagnostics are still validation aids only and must not mutate the filesystem or install upstream assets.
 

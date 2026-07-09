@@ -416,3 +416,65 @@ def test_cli_plan_upstream_setup_human_output_reports_no_commands_for_ready_tree
     assert exit_code == 0
     assert "status: ready" in out
     assert "commands: none" in out
+
+
+def test_cli_install_upstream_outputs_json_for_success(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "sam-3d-body"
+
+    class FakeResult:
+        success = True
+
+        def to_dict(self) -> dict[str, object]:
+            return {
+                "target": str(target),
+                "source_url": "https://example.com/upstream.git",
+                "revision": None,
+                "recursive": True,
+                "before_status": "missing",
+                "status": "ready",
+                "target_exists": True,
+                "upstream_package_exists": True,
+                "commands_run": ["git clone https://example.com/upstream.git " + str(target)],
+                "success": True,
+                "message": "upstream source is ready",
+            }
+
+    monkeypatch.setattr("sam3dbody.cli.install_upstream_source", lambda **kwargs: FakeResult())
+
+    exit_code = main(["install-upstream", "--target", str(target), "--source-url", "https://example.com/upstream.git", "--json"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["status"] == "ready"
+    assert payload["success"] is True
+
+
+def test_cli_install_upstream_returns_one_for_failure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "sam-3d-body"
+
+    class FakeResult:
+        success = False
+
+        def to_dict(self) -> dict[str, object]:
+            return {
+                "target": str(target),
+                "source_url": "https://github.com/facebookresearch/sam-3d-body.git",
+                "revision": None,
+                "recursive": False,
+                "before_status": "incomplete",
+                "status": "incomplete",
+                "target_exists": True,
+                "upstream_package_exists": False,
+                "commands_run": [],
+                "success": False,
+                "message": "target exists but does not contain sam_3d_body; refusing to overwrite it",
+            }
+
+    monkeypatch.setattr("sam3dbody.cli.install_upstream_source", lambda **kwargs: FakeResult())
+
+    exit_code = main(["install-upstream", "--target", str(target), "--no-recursive"])
+
+    out = capsys.readouterr().out
+    assert exit_code == 1
+    assert "success: False" in out
+    assert "commands_run: none" in out

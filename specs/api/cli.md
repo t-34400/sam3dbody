@@ -84,6 +84,30 @@ When `--json` is provided, the command prints a JSON object using the wrapper-ow
 
 `plan-upstream-setup` always exits with status code `0` because it is advisory and non-mutating. Readiness enforcement remains the responsibility of `check-env --strict`.
 
+## Upstream Installation Command
+
+```text
+sam3dbody install-upstream [--target PATH] [--source-url URL] [--revision REV] [--no-recursive] [--json]
+```
+
+`install-upstream` is the explicit mutating setup path for preparing the upstream SAM 3D Body source tree. It may create parent directories for the target, clone the upstream repository when the target is missing, optionally check out a requested revision, and optionally initialize upstream submodules recursively.
+
+When `--target` is omitted, the command uses the development-layout upstream location:
+
+```text
+third_party/sam-3d-body
+```
+
+When the target already contains the upstream `sam_3d_body` package directory, the command treats the source tree as ready. With recursive setup enabled, it may run recursive submodule initialization against the ready tree. With `--no-recursive`, it performs no Git command for an already-ready target.
+
+When the target exists but does not contain the upstream `sam_3d_body` package directory, the command must refuse to overwrite or repair it automatically and must report failure. Users should move, remove, or inspect the existing directory manually.
+
+When `--json` is provided, the command prints a JSON object using the wrapper-owned upstream install result schema. Without `--json`, the command prints a human-readable summary including the previous status, final status, success flag, message, and commands run.
+
+The command exits with status code `0` only when the final target contains the upstream `sam_3d_body` package directory. It exits with status code `1` when setup fails or the target remains incomplete.
+
+`install-upstream` prepares source code only. It must not download checkpoints, download MHR assets, install Python dependencies, import upstream modules, or run inference.
+
 ## Single Image Inference Command
 
 ```text
