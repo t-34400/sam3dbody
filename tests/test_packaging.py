@@ -9,22 +9,31 @@ def test_gitignore_excludes_generated_artifacts() -> None:
         assert pattern in gitignore
 
 
+def _write_file(path: Path, content: str | bytes = "content") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if isinstance(content, bytes):
+        path.write_bytes(content)
+    else:
+        path.write_text(content)
+
+
 def test_source_packaging_script_excludes_generated_artifacts(tmp_path: Path) -> None:
     from scripts.package_source import create_source_archive
 
-    Path("src/sam3dbody/__pycache__").mkdir(parents=True, exist_ok=True)
-    Path("src/sam3dbody/__pycache__/generated.pyc").write_bytes(b"cache")
-    Path(".pytest_cache").mkdir(exist_ok=True)
-    Path(".pytest_cache/README.md").write_text("cache")
-    Path("src/sam3dbody.egg-info").mkdir(exist_ok=True)
-    Path("src/sam3dbody.egg-info/PKG-INFO").write_text("metadata")
+    repo_root = tmp_path / "repo"
+    _write_file(repo_root / "scripts" / "package_source.py")
+    _write_file(repo_root / "src" / "sam3dbody" / "__init__.py")
+    _write_file(repo_root / "src" / "sam3dbody" / "__pycache__" / "generated.pyc", b"cache")
+    _write_file(repo_root / ".pytest_cache" / "README.md", "cache")
+    _write_file(repo_root / "src" / "sam3dbody.egg-info" / "PKG-INFO", "metadata")
 
     archive_path = tmp_path / "source.zip"
-    create_source_archive(Path.cwd(), archive_path)
+    create_source_archive(repo_root, archive_path)
 
     with ZipFile(archive_path) as archive:
         names = archive.namelist()
 
+    assert "src/sam3dbody/__init__.py" in names
     assert not any("__pycache__" in name for name in names)
     assert not any(".pytest_cache" in name for name in names)
     assert not any(name.endswith(".pyc") for name in names)
@@ -35,16 +44,19 @@ def test_source_packaging_script_excludes_generated_artifacts(tmp_path: Path) ->
 def test_source_packaging_script_excludes_upstream_checkout(tmp_path: Path) -> None:
     from scripts.package_source import create_source_archive
 
-    upstream_root = Path("third_party/sam-3d-body")
-    upstream_root.mkdir(parents=True, exist_ok=True)
-    (upstream_root / "sam_3d_body").mkdir(parents=True, exist_ok=True)
-    (upstream_root / "sam_3d_body" / "__init__.py").write_text("# upstream")
+    repo_root = tmp_path / "repo"
+    _write_file(repo_root / ".gitmodules")
+    _write_file(repo_root / "README.md")
+    _write_file(repo_root / "third_party" / "sam-3d-body" / "sam_3d_body" / "__init__.py", "# upstream")
+    _write_file(repo_root / "third_party" / "sam-3d-body" / ".git" / "HEAD", "ref: main")
+
     archive_path = tmp_path / "source.zip"
-    create_source_archive(Path.cwd(), archive_path)
+    create_source_archive(repo_root, archive_path)
 
     with ZipFile(archive_path) as archive:
         names = archive.namelist()
 
     assert ".gitmodules" in names
+    assert "README.md" in names
     assert not any(name.startswith("third_party/sam-3d-body/") for name in names)
     assert not any("/.git/" in name or name.startswith(".git/") for name in names)

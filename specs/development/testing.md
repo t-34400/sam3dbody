@@ -21,6 +21,12 @@ Initial tests should verify:
 * CLI availability if a CLI is provided
 * wrapper boundary behavior
 
+## Test Isolation
+
+Tests must not create generated artifacts, third-party checkouts, caches, or package metadata in the repository working tree when an isolated temporary directory can exercise the same behavior.
+
+Packaging tests that validate archive filtering should build synthetic source trees under temporary directories and pass those directories explicitly to packaging helpers.
+
 ## Test Organization
 
 Tests should be grouped by observable responsibility.
