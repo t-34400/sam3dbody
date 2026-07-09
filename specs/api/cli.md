@@ -66,7 +66,7 @@ The command must not clone repositories, initialize Git submodules, download che
 
 When `--target` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.
 
-The command reports whether the target exists, whether the upstream `sam_3d_body` package directory exists, and a suggested command list. When the upstream package directory already exists, the command reports status `ready`. When the target is missing, it reports status `missing`. When the target exists but does not contain the upstream package directory, it reports status `incomplete`.
+The command reports whether the target exists, whether the upstream `sam_3d_body` package directory exists, and a suggested command list. Command strings must be rendered as shell-readable commands with explicit argument separation. When the upstream package directory already exists, the command reports status `ready`. When the target is missing, it reports status `missing`. When the target exists but does not contain the upstream package directory, it reports status `incomplete`.
 
 When `--json` is provided, the command prints a JSON object using the wrapper-owned upstream setup plan schema. Without `--json`, the command prints a human-readable summary.
 
@@ -86,7 +86,7 @@ When the target already contains the upstream `sam_3d_body` package directory, t
 
 When the target exists but does not contain the upstream `sam_3d_body` package directory, the command must refuse to overwrite or repair it automatically and must report failure. Users should move, remove, or inspect the existing directory manually.
 
-When `--json` is provided, the command prints a JSON object using the wrapper-owned upstream install result schema. Without `--json`, the command prints a human-readable summary including the previous status, final status, success flag, message, and commands run.
+When `--json` is provided, the command prints a JSON object using the wrapper-owned upstream install result schema. Without `--json`, the command prints a human-readable summary including the previous status, final status, success flag, message, and commands run. Command strings in `commands_run` must be rendered as shell-readable commands with explicit argument separation.
 
 The command exits with status code `0` only when the final target contains the upstream `sam_3d_body` package directory. It exits with status code `1` when setup fails or the target remains incomplete.
 

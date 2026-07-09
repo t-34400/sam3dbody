@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shlex
 import subprocess
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -37,7 +38,7 @@ class Sam3DBodyUpstreamSetupPlan:
 
     @property
     def commands(self) -> tuple[str, ...]:
-        return tuple(" ".join(command) for command in self.command_argvs)
+        return tuple(_format_command(command) for command in self.command_argvs)
 
     @property
     def command_argvs(self) -> tuple[tuple[str, ...], ...]:
@@ -113,6 +114,10 @@ class Sam3DBodyUpstreamInstallResult:
         }
 
 
+def _format_command(command: Sequence[str]) -> str:
+    return shlex.join(str(part) for part in command)
+
+
 def plan_upstream_setup(
     *,
     target: Path | None = None,
@@ -162,7 +167,7 @@ def install_upstream_source(
             before.target.parent.mkdir(parents=True, exist_ok=True)
         for command in before.command_argvs:
             command_runner(command)
-            commands_run.append(" ".join(command))
+            commands_run.append(_format_command(command))
     except subprocess.CalledProcessError as exc:
         return _install_result(
             before,

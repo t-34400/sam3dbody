@@ -18,13 +18,29 @@ upstream inference dependencies
 
 ## Wrapper Dependency Policy
 
-The base package should keep wrapper dependencies minimal.
+The base package should keep wrapper dependencies modest but practical for the documented inference setup workflow.
 
-Base installation must support importing `sam3dbody` and using non-inference wrapper objects without installing the full upstream inference stack.
+Base installation must support importing `sam3dbody`, using non-inference wrapper objects, running CLI diagnostics, and satisfying the PyPI-installable representative runtime modules checked by `check-env`, except for platform-specific packages.
+
+The following representative PyPI packages are base runtime dependencies because they are ordinary packaging-tool-installable prerequisites reported by the wrapper environment check:
+
+```text
+opencv-python
+yacs
+scikit-image
+einops
+timm
+pandas
+rich
+hydra-core
+huggingface_hub
+```
+
+These base dependencies do not make the environment inference-ready by themselves. They only remove ordinary PyPI dependency setup from the manual post-install checklist.
 
 ## Upstream Dependency Policy
 
-Dependencies required only for upstream inference should not be added to the base dependency list unless they are required by wrapper code.
+Platform-specific, non-PyPI, pinned Git, optional upstream, or asset-like dependencies required only for real upstream inference should not be added to the base dependency list unless wrapper-owned runtime code requires them.
 
 Upstream inference dependencies should be documented separately and may be exposed through optional extras once the installation contract is finalized.
 
@@ -54,13 +70,13 @@ This file is the observed source for upstream dependency investigation until a w
 
 ## Optional Dependency Contract
 
-The base project dependency list must remain minimal and must not include the upstream inference stack.
+The base project dependency list should remain modest and must not include platform-specific, non-PyPI, pinned Git, optional upstream, or asset-like dependencies from the upstream inference stack.
 
 The wrapper may declare optional dependency groups in `pyproject.toml` for documented integration stages.
 
 ### `inference` extra
 
-The `inference` extra contains the PyPI-installable packages observed in the upstream installation guide that are needed before real SAM 3D Body inference integration can be attempted.
+The `inference` extra contains additional PyPI-installable packages observed in the upstream installation guide that may be needed before real SAM 3D Body inference integration can be attempted. Some representative packages may also appear in the base dependency list when they are part of the documented wrapper setup experience.
 
 The `inference` extra is allowed to be incomplete with respect to non-PyPI or platform-specific requirements. In particular:
 
@@ -82,14 +98,14 @@ These packages may be added to a future development, training, logging, or visua
 
 ## Dependency Declaration Requirements
 
-Base dependencies in `pyproject.toml` must stay empty unless wrapper-owned runtime code requires a dependency for import-time or non-inference behavior.
+Base dependencies in `pyproject.toml` must include only wrapper-owned runtime requirements and the documented ordinary PyPI inference prerequisites listed in this specification. They must not include platform-specific or non-PyPI upstream requirements.
 
 Optional dependencies must be tested as declared metadata. Lightweight tests must not install or import the heavy upstream inference stack.
 
 Dependency tests should verify that:
 
-* base dependencies remain lightweight;
+* base dependencies include the documented ordinary PyPI prerequisites;
 * the `inference` extra is declared;
-* upstream-only packages do not become package import-time requirements;
+* platform-specific and non-PyPI upstream-only packages do not become base requirements;
 * static dependency inspection remains non-invasive.
 

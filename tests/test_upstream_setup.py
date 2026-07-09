@@ -95,3 +95,28 @@ def test_default_upstream_root_uses_source_checkout_layout() -> None:
     from sam3dbody.paths import default_upstream_root
 
     assert default_upstream_root().as_posix().endswith("third_party/sam-3d-body")
+
+
+def test_upstream_setup_commands_are_shell_readable_with_spaced_paths(tmp_path: Path) -> None:
+    target = tmp_path / "path with spaces" / "sam-3d-body"
+
+    plan = plan_upstream_setup(target=target, source_url="https://example.com/upstream.git")
+
+    assert plan.commands[0] == f"git clone https://example.com/upstream.git '{target}'"
+
+
+def test_install_upstream_source_records_shell_readable_commands_with_spaced_paths(tmp_path: Path) -> None:
+    target = tmp_path / "path with spaces" / "sam-3d-body"
+
+    def fake_runner(command):
+        if tuple(command[:2]) == ("git", "clone"):
+            (target / "sam_3d_body").mkdir(parents=True)
+
+    result = install_upstream_source(
+        target=target,
+        source_url="https://example.com/upstream.git",
+        runner=fake_runner,
+    )
+
+    assert result.success is True
+    assert result.commands_run[0] == f"git clone https://example.com/upstream.git '{target}'"

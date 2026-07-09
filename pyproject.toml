@@ -7,7 +7,17 @@ authors = [
     { name = "t-34400", email = "34400mt@gmail.com" }
 ]
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "opencv-python",
+    "yacs",
+    "scikit-image",
+    "einops",
+    "timm",
+    "pandas",
+    "rich",
+    "hydra-core",
+    "huggingface_hub",
+]
 
 
 [project.optional-dependencies]

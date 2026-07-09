@@ -12,11 +12,13 @@ For wrapper development from a source checkout:
 pip install -e .
 ```
 
-For Git URL installation, standard Python packaging tools install only this wrapper package. They do not initialize Git submodules and should not be treated as enough for real upstream inference.
+For Git URL installation, standard Python packaging tools install this wrapper package plus ordinary PyPI runtime prerequisites such as OpenCV, scikit-image, timm, pandas, rich, Hydra, and Hugging Face Hub. They do not initialize Git submodules and should not be treated as enough for real upstream inference.
 
 ```bash
 pip install git+https://example.com/sam3dbody.git
 ```
+
+PyTorch, Detectron2, SAM3, checkpoints, MHR assets, CUDA drivers, and authenticated model access remain environment-specific and must be prepared separately.
 
 ## Prepare upstream source
 
@@ -72,7 +74,7 @@ sam3dbody infer image.png \
   --output result.json
 ```
 
-Checkpoints, MHR assets, CUDA, PyTorch, Detectron2, SAM3, and other upstream inference requirements are external runtime prerequisites. They are not bundled into this wrapper package.
+Checkpoints, MHR assets, CUDA, PyTorch, Detectron2, SAM3, and other platform-specific or non-PyPI upstream inference requirements are external runtime prerequisites. They are not bundled into this wrapper package.
 
 Source archives produced by `scripts/package_source.py` intentionally exclude `third_party/sam-3d-body/` and Git metadata. Recreate upstream source locally with `sam3dbody install-upstream` after installing or unpacking the wrapper.
 
