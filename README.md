@@ -28,12 +28,12 @@ uv pip install torch torchvision --index-url <TORCH_INDEX_URL>
 uv pip install timm pytorch-lightning
 
 sam3dbody check-env \
-  --weights /path/to/checkpoint.ckpt \
-  --mhr-path /path/to/mhr_model.pt
+  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
+  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt
 
 sam3dbody smoke-test /path/to/image.png \
-  --weights /path/to/checkpoint.ckpt \
-  --mhr-path /path/to/mhr_model.pt \
+  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
+  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
   --repeat 3 \
   --output smoke-report.json
 ```
@@ -94,6 +94,33 @@ sam3dbody install-upstream --target .local/upstream/sam-3d-body
 
 Source archives produced by `scripts/package_source.py` intentionally exclude `third_party/sam-3d-body/` and Git metadata. Recreate upstream source locally with `sam3dbody install-upstream` after installing or unpacking the wrapper.
 
+## Download official model files
+
+Real inference requires the official SAM 3D Body DINOv3 checkpoint and MHR asset. Download them from the official gated Hugging Face repository after your access request has been approved:
+
+```text
+https://huggingface.co/facebook/sam-3d-body-dinov3/tree/main
+```
+
+Use the upstream file layout expected by the wrapper examples:
+
+```text
+.local/models/
+└── sam-3d-body-dinov3/
+    ├── model.ckpt
+    └── assets/
+        └── mhr_model.pt
+```
+
+The corresponding command paths are:
+
+```text
+--weights .local/models/sam-3d-body-dinov3/model.ckpt
+--mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt
+```
+
+The wrapper does not bundle, mirror, or automatically download these files.
+
 ## Check the environment
 
 Run the diagnostic before and after preparing the real inference environment:
@@ -117,8 +144,8 @@ Use strict mode in scripts when missing inference prerequisites should fail the 
 
 ```bash
 sam3dbody check-env \
-  --weights /path/to/checkpoint.ckpt \
-  --mhr-path /path/to/mhr_model.pt \
+  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
+  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
   --strict
 ```
 
@@ -138,11 +165,11 @@ Then re-check with real model paths:
 
 ```bash
 sam3dbody check-env \
-  --weights /path/to/checkpoint.ckpt \
-  --mhr-path /path/to/mhr_model.pt
+  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
+  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt
 ```
 
-Model checkpoints and MHR assets are not bundled into this wrapper. Provide them explicitly or obtain them through the upstream-authorized distribution path.
+Model checkpoints and MHR assets are not bundled into this wrapper. Provide them explicitly after downloading the official files through approved Hugging Face access.
 
 ## Python API
 
@@ -150,9 +177,9 @@ Model checkpoints and MHR assets are not bundled into this wrapper. Provide them
 from sam3dbody import Sam3DBodyModel
 
 model = Sam3DBodyModel.from_pretrained(
-    weights_path="/path/to/checkpoint.ckpt",
+    weights_path=".local/models/sam-3d-body-dinov3/model.ckpt",
     device="cuda",
-    config={"mhr_path": "/path/to/mhr_model.pt"},
+    config={"mhr_path": ".local/models/sam-3d-body-dinov3/assets/mhr_model.pt"},
 )
 session = model.load()
 result = session.predict("/path/to/image.png")
@@ -174,8 +201,8 @@ results = session.predict_many([
 
 ```bash
 sam3dbody infer image.png \
-  --weights /path/to/checkpoint.ckpt \
-  --mhr-path /path/to/mhr_model.pt \
+  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
+  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
   --output result.json
 ```
 
@@ -187,8 +214,8 @@ After preparing upstream source, dependencies, CUDA, weights, MHR assets, and a 
 
 ```bash
 sam3dbody smoke-test image.png \
-  --weights /path/to/checkpoint.ckpt \
-  --mhr-path /path/to/mhr_model.pt \
+  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
+  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
   --repeat 3 \
   --output smoke-report.json
 ```
@@ -210,8 +237,8 @@ The pytest real-inference smoke test is skipped by default. To run it explicitly
 ```bash
 SAM3DBODY_RUN_REAL_SMOKE=1 \
 SAM3DBODY_SMOKE_IMAGE=/path/to/image.png \
-SAM3DBODY_SMOKE_WEIGHTS=/path/to/checkpoint.ckpt \
-SAM3DBODY_SMOKE_MHR_PATH=/path/to/mhr_model.pt \
+SAM3DBODY_SMOKE_WEIGHTS=.local/models/sam-3d-body-dinov3/model.ckpt \
+SAM3DBODY_SMOKE_MHR_PATH=.local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
 PYTHONPATH=src:. pytest -q tests/test_real_inference_smoke.py
 ```
 
@@ -221,3 +248,14 @@ PYTHONPATH=src:. pytest -q tests/test_real_inference_smoke.py
 - Wrapper imports are lazy with respect to upstream inference modules, so missing upstream dependencies should not break `import sam3dbody`.
 - Base dependency checks are diagnostic; `check-env` does not clone repositories, install packages, download checkpoints, import upstream modules, or run inference.
 - `smoke-test` is the integration validation command for real upstream inference environments.
+
+## License and upstream terms
+
+This wrapper is intended to be used with upstream SAM 3D Body materials. The upstream SAM 3D Body code, checkpoints, MHR assets, and related materials are distributed separately by Meta and are subject to the SAM License and the upstream access terms.
+
+This repository includes a copy of the SAM License in [`LICENSE`](LICENSE) so users can review the terms that apply to SAM 3D Body materials. Before downloading or using the official checkpoint and MHR asset, also review the terms presented by the upstream repository and the gated Hugging Face model page:
+
+- Upstream source: `https://github.com/facebookresearch/sam-3d-body`
+- Official model files: `https://huggingface.co/facebook/sam-3d-body-dinov3/tree/main`
+
+`sam3dbody install-upstream` prepares source code only. It does not grant model access, download checkpoints, download MHR assets, or change the license obligations for upstream materials.

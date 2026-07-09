@@ -43,6 +43,14 @@ The packaging script must exclude generated artifacts documented in this release
 
 Manual zip creation is discouraged because it can accidentally include local cache or build outputs.
 
+## License Files and Upstream Terms
+
+Source archives must include the top-level `LICENSE` file.
+
+The license documentation must make clear that upstream SAM 3D Body source code, checkpoints, MHR assets, and related materials are distributed separately by Meta and remain subject to the SAM License and upstream access terms.
+
+README setup instructions must direct users to the official gated Hugging Face repository for `sam-3d-body-dinov3/model.ckpt` and `sam-3d-body-dinov3/assets/mhr_model.pt`. Wrapper setup commands must not be documented as downloading or granting access to those assets.
+
 ## Git Installation and Submodules
 
 Installing this project from a Git URL with standard Python packaging tools must not assume that Git submodules are initialized by the installer.
