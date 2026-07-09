@@ -34,3 +34,9 @@ Wrapper repository license and notice files must not imply that upstream license
 Upstream updates should be reviewed before adoption.
 
 Wrapper compatibility must be validated after updating the third-party implementation.
+
+## Distribution Constraint
+
+The third-party source location is a development layout detail. Standard Git URL installation with Python packaging tools must not be assumed to initialize this submodule.
+
+Distribution and setup requirements for Git URL installation and upstream source availability are defined in [../development/release.md](../development/release.md).
