@@ -77,6 +77,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="optional JSON file containing a 3x3 camera intrinsics matrix or {'cam_int': ...}",
     )
     infer.add_argument(
+        "--masks-json",
+        type=Path,
+        default=None,
+        help="optional JSON file containing masks as [[[...]], ...] or {'masks': ...}",
+    )
+    infer.add_argument(
         "--bbox-thr",
         type=float,
         default=0.5,
@@ -143,6 +149,7 @@ def _run_infer(args: argparse.Namespace) -> int:
     result = session.predict(
         args.image,
         bboxes=_load_bboxes_json(args.bboxes_json),
+        masks=_load_masks_json(args.masks_json),
         cam_int=_load_cam_int_json(args.cam_int_json),
         bbox_thr=args.bbox_thr,
         nms_thr=args.nms_thr,
@@ -165,6 +172,17 @@ def _load_bboxes_json(path: Path | None) -> Any | None:
         if "bboxes" not in payload:
             raise ValueError(f"bboxes JSON object must contain a 'bboxes' key: {path}")
         return payload["bboxes"]
+    return payload
+
+
+def _load_masks_json(path: Path | None) -> Any | None:
+    if path is None:
+        return None
+    payload = _read_json_file(path)
+    if isinstance(payload, dict):
+        if "masks" not in payload:
+            raise ValueError(f"masks JSON object must contain a 'masks' key: {path}")
+        return payload["masks"]
     return payload
 
 

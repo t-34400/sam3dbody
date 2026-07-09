@@ -111,6 +111,7 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
     assert calls["image"] == image
     assert calls["predict_kwargs"] == {
         "bboxes": [[1, 2, 3, 4]],
+        "masks": None,
         "cam_int": None,
         "bbox_thr": 0.7,
         "nms_thr": 0.2,
@@ -209,3 +210,46 @@ def test_cli_infer_rejects_bboxes_json_object_without_bboxes_key(tmp_path: Path)
 
     with pytest.raises(ValueError, match="bboxes"):
         _load_bboxes_json(bboxes_json)
+
+
+def test_cli_infer_loads_masks_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    image = tmp_path / "image.png"
+    image.write_bytes(b"not a real image")
+    weights = tmp_path / "model.ckpt"
+    weights.write_bytes(b"checkpoint")
+    masks_json = tmp_path / "masks.json"
+    masks_json.write_text(json.dumps({"masks": [[[0, 1], [1, 0]]]}))
+    calls: dict[str, object] = {}
+
+    class FakeResult:
+        def to_dict(self) -> dict[str, object]:
+            return {"bodies": [], "metadata": {}}
+
+    class FakeSession:
+        def predict(self, image_arg: Path, **kwargs: object) -> FakeResult:
+            calls.update(kwargs)
+            return FakeResult()
+
+    class FakeModel:
+        def load(self) -> FakeSession:
+            return FakeSession()
+
+    monkeypatch.setattr(
+        "sam3dbody.cli.Sam3DBodyModel.from_pretrained",
+        lambda *args, **kwargs: FakeModel(),
+    )
+
+    exit_code = main(["infer", str(image), "--weights", str(weights), "--masks-json", str(masks_json)])
+
+    assert exit_code == 0
+    assert calls["masks"] == [[[0, 1], [1, 0]]]
+
+
+def test_cli_infer_rejects_masks_json_object_without_masks_key(tmp_path: Path) -> None:
+    from sam3dbody.cli import _load_masks_json
+
+    masks_json = tmp_path / "masks.json"
+    masks_json.write_text(json.dumps({"mask": []}))
+
+    with pytest.raises(ValueError, match="masks"):
+        _load_masks_json(masks_json)
