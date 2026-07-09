@@ -56,6 +56,8 @@ def test_environment_report_exposes_missing_requirements(tmp_path: Path) -> None
     assert any("weights file" in item for item in missing)
     assert any("missing importable modules" in item for item in missing)
     assert payload["missing_requirements"] == list(missing)
+    assert "next_steps" in payload
+    assert any("install-upstream" in step for step in payload["next_steps"])
 
 
 def test_check_environment_default_upstream_root_can_be_monkeypatched(monkeypatch: object, tmp_path: Path) -> None:
@@ -74,4 +76,5 @@ def test_default_environment_modules_include_real_smoke_import_findings() -> Non
     assert "braceexpand" in DEFAULT_INFERENCE_MODULES
     assert "roma" in DEFAULT_INFERENCE_MODULES
     assert "pytorch_lightning" in DEFAULT_INFERENCE_MODULES
+    assert "torchvision" in DEFAULT_INFERENCE_MODULES
     assert "termcolor" in DEFAULT_INFERENCE_MODULES

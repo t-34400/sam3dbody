@@ -13,6 +13,7 @@ from sam3dbody.paths import default_upstream_root
 
 DEFAULT_INFERENCE_MODULES = (
     "torch",
+    "torchvision",
     "cv2",
     "yacs",
     "skimage",
@@ -73,6 +74,41 @@ class Sam3DBodyEnvironmentReport:
         """Return whether required local preconditions appear satisfied."""
         return not self.missing_requirements
 
+    @property
+    def next_steps(self) -> tuple[str, ...]:
+        """Return suggested next actions for reaching inference readiness."""
+        if self.ready_for_inference:
+            return (
+                "Run: sam3dbody smoke-test IMAGE --weights PATH --mhr-path PATH",
+            )
+
+        steps: list[str] = []
+        if not self.upstream_exists or not self.upstream_package_exists:
+            steps.append("Run: sam3dbody install-upstream")
+
+        if self.weights_path is None:
+            steps.append("Pass model weights with --weights PATH when checking or running inference")
+        elif self.weights_exists is not True:
+            steps.append("Fix the --weights path or place the checkpoint at the reported path")
+
+        if self.mhr_exists is False:
+            steps.append("Fix the --mhr-path path or place the MHR asset at the reported path")
+
+        missing_modules = [module for module, available in self.modules.items() if not available]
+        torch_stack = {"torch", "torchvision", "timm", "pytorch_lightning"}
+        missing_torch_stack = [module for module in missing_modules if module in torch_stack]
+        if missing_torch_stack or self.torch_cuda_available is not True:
+            steps.append(
+                "Install CUDA-compatible torch/torchvision first, then install timm and pytorch-lightning"
+            )
+
+        ordinary_missing = [module for module in missing_modules if module not in torch_stack]
+        if ordinary_missing:
+            packages = ["scikit-image" if module == "skimage" else "hydra-core" if module == "hydra" else module for module in ordinary_missing]
+            steps.append("Install missing PyPI packages: uv pip install " + " ".join(packages))
+
+        return tuple(dict.fromkeys(steps))
+
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable report."""
         return {
@@ -86,6 +122,7 @@ class Sam3DBodyEnvironmentReport:
             "modules": dict(self.modules),
             "torch_cuda_available": self.torch_cuda_available,
             "missing_requirements": list(self.missing_requirements),
+            "next_steps": list(self.next_steps),
             "ready_for_inference": self.ready_for_inference,
         }
 

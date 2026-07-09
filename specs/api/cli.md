@@ -49,7 +49,9 @@ The command checks at least:
 
 When `--upstream-root` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.
 
-When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary. The human-readable summary must include a `missing_requirements` section that lists the readiness blockers used to decide `ready_for_inference`, or `none` when no blockers are present.
+When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary. The human-readable summary must include a `missing_requirements` section that lists the readiness blockers used to decide `ready_for_inference`, or `none` when no blockers are present. It must also include a `next_steps` section that suggests concrete follow-up actions, or `none` when no follow-up action is known.
+
+The wrapper-owned environment report schema includes `next_steps` as advisory strings. These strings may include commands for wrapper-owned setup steps, such as `sam3dbody install-upstream`, and environment-dependent guidance for Torch-family packages. They are diagnostic guidance only and must not cause `check-env` to mutate the filesystem or install packages.
 
 By default, `check-env` exits with status code `0` after reporting diagnostics, even when the environment is not inference-ready. When `--strict` is provided, the command exits with status code `0` only if the report is ready for inference, and exits with status code `1` otherwise.
 

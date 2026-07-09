@@ -327,6 +327,13 @@ def _run_check_env(args: argparse.Namespace) -> int:
                 print(f"  - {requirement}")
         else:
             print("missing_requirements: none")
+        next_steps = payload.get("next_steps", [])
+        if next_steps:
+            print("next_steps:")
+            for step in next_steps:
+                print(f"  - {step}")
+        else:
+            print("next_steps: none")
         print("modules:")
         for module, available in payload["modules"].items():
             print(f"  - {module}: {available}")

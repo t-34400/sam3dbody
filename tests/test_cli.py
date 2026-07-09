@@ -337,6 +337,7 @@ def test_cli_check_env_strict_returns_zero_when_ready(monkeypatch: pytest.Monkey
                 "mhr_exists": None,
                 "modules": {"torch": True},
                 "torch_cuda_available": True,
+                "next_steps": ["Run: sam3dbody smoke-test IMAGE --weights PATH --mhr-path PATH"],
                 "ready_for_inference": True,
             }
 
@@ -381,6 +382,7 @@ def test_cli_check_env_human_output_reports_no_missing_requirements(monkeypatch:
                 "modules": {"torch": True},
                 "torch_cuda_available": True,
                 "missing_requirements": [],
+                "next_steps": ["Run: sam3dbody smoke-test IMAGE --weights PATH --mhr-path PATH"],
                 "ready_for_inference": True,
             }
 
@@ -391,7 +393,26 @@ def test_cli_check_env_human_output_reports_no_missing_requirements(monkeypatch:
     output = capsys.readouterr().out
     assert exit_code == 0
     assert "missing_requirements: none" in output
+    assert "next_steps:" in output
+    assert "smoke-test" in output
 
+
+
+
+def test_cli_check_env_human_output_lists_next_steps(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main([
+        "check-env",
+        "--upstream-root",
+        str(tmp_path / "missing-upstream"),
+        "--weights",
+        str(tmp_path / "missing.ckpt"),
+    ])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "next_steps:" in output
+    assert "sam3dbody install-upstream" in output
+    assert "Fix the --weights path" in output
 
 def test_cli_plan_upstream_setup_outputs_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     target = tmp_path / "sam-3d-body"
