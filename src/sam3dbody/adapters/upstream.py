@@ -13,6 +13,7 @@ from .loader import (
     Sam3DBodyLoadedModel,
     Sam3DBodyUpstreamLoader,
     _prepend_sys_path,
+    _isolated_upstream_modules,
 )
 from sam3dbody.paths import default_upstream_root
 from sam3dbody.result import Sam3DBodyMetadata, Sam3DBodyPrediction, Sam3DBodyResult
@@ -118,7 +119,7 @@ class Sam3DBodyUpstreamAdapter:
 
     def create_estimator(self, loaded_model: Sam3DBodyLoadedModel) -> Any:
         """Create an upstream estimator from an already loaded model handle."""
-        with _prepend_sys_path(self.repository.root):
+        with _prepend_sys_path(self.repository.root), _isolated_upstream_modules("sam_3d_body"):
             module = importlib.import_module("sam_3d_body")
             estimator_cls = getattr(module, "SAM3DBodyEstimator")
             return estimator_cls(

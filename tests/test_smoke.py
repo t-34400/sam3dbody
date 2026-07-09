@@ -69,6 +69,8 @@ def test_run_smoke_test_uses_real_api_path_with_fake_upstream(tmp_path: Path) ->
     )
 
     assert report["success"] is True
+    assert report["upstream_root"] == str(upstream_root)
+    assert report["environment"]["upstream_root"] == str(upstream_root)
     assert report["single"]["body_count"] == 1
     assert report["single"]["bodies"][0]["vertices"]["shape"] == [1, 3]
     assert report["single"]["bodies"][0]["vertices"]["dtype"] == "float32"

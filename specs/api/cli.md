@@ -143,13 +143,13 @@ When prerequisites are ready, or when `--skip-env-check` is supplied, the comman
 The command writes a wrapper-owned JSON report. The report must include:
 
 * a smoke report schema version;
-* input paths and device settings;
+* input paths and device settings, including the resolved upstream source root;
 * the environment readiness report;
 * single-image result summary;
 * optional repeated batch result summary;
 * success flag and message.
 
-Result summaries must avoid embedding full tensors or arrays. They should record body counts, metadata, field presence, field type, shape, dtype when available, bbox values, and extra output keys. This command is a diagnostic aid and does not define stable model accuracy expectations.
+Result summaries must avoid embedding full tensors or arrays. They should record body counts, metadata, field presence, field type, shape, dtype when available, bbox values, and extra output keys. The top-level `upstream_root` field must contain the resolved upstream source root used by the environment check, even when `--upstream-root` was omitted. This command is a diagnostic aid and does not define stable model accuracy expectations.
 
 `--repeat` must be greater than or equal to zero. The command exits with status code `0` only when the smoke test completes successfully. When `--output` is provided, the command must still print the report path on success or failure. When the smoke report has `success: false`, the command must also print a concise failure summary to stderr so users are not left with a silent non-zero exit.
 

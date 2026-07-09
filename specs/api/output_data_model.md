@@ -121,3 +121,18 @@ The wrapper records coordinate labels in `Sam3DBodyMetadata.extra["coordinate_co
 * `faces`: `mesh_topology_indices`.
 
 These labels are intentionally conservative. The wrapper does not yet perform coordinate correction or claim world/camera coordinate semantics for vertices or joints. Real-model smoke testing must inspect upstream outputs before these labels are promoted to a stable downstream contract.
+
+## Observed Real Smoke Test Output
+
+A real CUDA smoke test against the SAM 3D Body DINOv3 checkpoint and MHR asset has validated the initial wrapper mapping with one full-image body prediction and repeated inference. The observed stable summaries were:
+
+* `success`: `true`;
+* `environment.ready_for_inference`: `true`;
+* single-image `body_count`: `1`;
+* repeated inference with `repeat=3`: `requested_count` and `result_count` were both `3`;
+* `vertices`: `float32`, shape `[18439, 3]`;
+* `joints`: `float32`, shape `[70, 3]`;
+* `faces`: `int64`, shape `[36874, 3]`;
+* `bbox_xyxy`: `[0.0, 0.0, 1600.0, 1600.0]` for the full-image smoke input.
+
+These observations validate that the wrapper can load the real upstream model and summarize outputs without embedding large arrays. They do not yet promote vertex or joint coordinates to a stable camera/world coordinate contract; the conservative coordinate labels remain authoritative.

@@ -144,7 +144,9 @@ sam3dbody smoke-test image.png \
   --output smoke-report.json
 ```
 
-The smoke report records environment readiness, body counts, output keys, and shape/dtype summaries. It avoids embedding full tensors or arrays.
+The smoke report records environment readiness, body counts, output keys, and shape/dtype summaries. It avoids embedding full tensors or arrays. When `--output` is used, the CLI still prints the report path and prints a concise failure summary to stderr if the smoke test fails.
+
+A validated real smoke test with the SAM 3D Body DINOv3 checkpoint and MHR asset produced one body for both single-image inference and `--repeat 3`. The observed output summaries were `vertices` as `float32 [18439, 3]`, `joints` as `float32 [70, 3]`, and `faces` as `int64 [36874, 3]`. These shapes are useful sanity checks, but vertex and joint coordinates are still labeled as upstream model coordinates until a dedicated coordinate convention validation is completed.
 
 The pytest real-inference smoke test is skipped by default. To run it explicitly, provide real paths:
 

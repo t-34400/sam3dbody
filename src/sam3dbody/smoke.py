@@ -41,7 +41,7 @@ def run_smoke_test(config: Sam3DBodySmokeTestConfig) -> dict[str, Any]:
         "weights_path": str(config.weights_path),
         "device": config.device,
         "mhr_path": str(config.mhr_path) if config.mhr_path is not None else None,
-        "upstream_root": str(config.upstream_root) if config.upstream_root is not None else None,
+        "upstream_root": str(environment.upstream_root),
         "environment": environment.to_dict(),
         "single": None,
         "batch": None,
