@@ -15,6 +15,7 @@ from .loader import (
     _prepend_sys_path,
 )
 from sam3dbody.result import Sam3DBodyMetadata, Sam3DBodyPrediction, Sam3DBodyResult
+from sam3dbody.validation import validate_prediction_inputs
 
 
 @dataclass(frozen=True)
@@ -93,6 +94,16 @@ class Sam3DBodyUpstreamAdapter:
     ) -> Sam3DBodyResult:
         """Run upstream single-image inference and convert to wrapper results."""
         prediction_options = options or Sam3DBodyPredictionOptions()
+        validate_prediction_inputs(
+            image,
+            bboxes=prediction_options.bboxes,
+            masks=prediction_options.masks,
+            cam_int=prediction_options.cam_int,
+            bbox_thr=prediction_options.bbox_thr,
+            nms_thr=prediction_options.nms_thr,
+            inference_type=prediction_options.inference_type,
+            device=loaded_model.load_config.device,
+        )
         active_estimator = estimator or self.create_estimator(loaded_model)
         upstream_image = str(image) if isinstance(image, Path) else image
         upstream_outputs = active_estimator.process_one_image(

@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import pytest
+
+from sam3dbody import Sam3DBodyInputError
 from sam3dbody.adapters import (
     Sam3DBodyLoadConfig,
     Sam3DBodyPredictionOptions,
@@ -48,23 +51,26 @@ def test_adapter_predict_calls_upstream_estimator_and_converts_result(tmp_path: 
     checkpoint = tmp_path / "model.ckpt"
     checkpoint.write_text("fake")
     adapter = Sam3DBodyUpstreamAdapter.from_repository_root(repo)
-    loaded = adapter.load(Sam3DBodyLoadConfig.from_values(checkpoint, device="cpu"))
+    loaded = adapter.load(Sam3DBodyLoadConfig.from_values(checkpoint, device="cuda"))
+
+    image_path = tmp_path / "image.png"
+    image_path.write_bytes(b"fake")
 
     result = adapter.predict(
-        Path("image.png"),
+        image_path,
         loaded,
         options=Sam3DBodyPredictionOptions(bbox_thr=0.9, inference_type="body"),
     )
 
     assert result.metadata.model_name == "sam-3d-body"
-    assert result.metadata.device == "cpu"
+    assert result.metadata.device == "cuda"
     assert len(result.bodies) == 1
     body = result.bodies[0]
     assert body.bbox_xyxy == (1.0, 2.0, 3.0, 4.0)
     assert body.vertices == [[0.0, 0.0, 0.0]]
     assert body.faces == [[0, 1, 2]]
     assert body.joints == [[1.0, 1.0, 1.0]]
-    assert body.extra["image_arg"] == "image.png"
+    assert body.extra["image_arg"] == str(image_path)
     assert body.extra["inference_type"] == "body"
     assert body.extra["bbox_thr"] == 0.9
 
@@ -76,11 +82,14 @@ def test_public_model_predict_loads_and_uses_adapter_boundary(tmp_path: Path) ->
     checkpoint.write_text("fake")
     model = Sam3DBodyModel(
         weights_path=checkpoint,
-        device="cpu",
+        device="cuda",
         adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
     )
 
-    result = model.predict("image.png", inference_type="body")
+    image_path = tmp_path / "image.png"
+    image_path.write_bytes(b"fake")
+
+    result = model.predict(image_path, inference_type="body")
 
     assert result.bodies[0].bbox_xyxy == (1.0, 2.0, 3.0, 4.0)
     assert result.bodies[0].extra["inference_type"] == "body"
@@ -101,17 +110,22 @@ def test_public_model_load_returns_reusable_session(tmp_path: Path) -> None:
     checkpoint.write_text("fake")
     model = Sam3DBodyModel(
         weights_path=checkpoint,
-        device="cpu",
+        device="cuda",
         adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
     )
 
     session = model.load()
-    first = session.predict("first.png")
-    second = session.predict("second.png", inference_type="body")
+    first_path = tmp_path / "first.png"
+    second_path = tmp_path / "second.png"
+    first_path.write_bytes(b"fake")
+    second_path.write_bytes(b"fake")
 
-    assert session.device == "cpu"
-    assert first.bodies[0].extra["image_arg"] == "first.png"
-    assert second.bodies[0].extra["image_arg"] == "second.png"
+    first = session.predict(first_path)
+    second = session.predict(second_path, inference_type="body")
+
+    assert session.device == "cuda"
+    assert first.bodies[0].extra["image_arg"] == str(first_path)
+    assert second.bodies[0].extra["image_arg"] == str(second_path)
     assert second.bodies[0].extra["inference_type"] == "body"
 
 
@@ -137,12 +151,75 @@ def test_session_does_not_reload_weights_for_repeated_prediction(tmp_path: Path)
     checkpoint.write_text("fake")
     model = Sam3DBodyModel(
         weights_path=checkpoint,
-        device="cpu",
+        device="cuda",
         adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
     )
 
     session = model.load()
-    session.predict("a.png")
-    session.predict("b.png")
+    a_path = tmp_path / "a.png"
+    b_path = tmp_path / "b.png"
+    a_path.write_bytes(b"fake")
+    b_path.write_bytes(b"fake")
+
+    session.predict(a_path)
+    session.predict(b_path)
 
     assert marker.read_text().splitlines() == ["load"]
+
+
+def test_predict_rejects_missing_image_before_upstream_call(tmp_path: Path) -> None:
+    repo = tmp_path / "sam-3d-body"
+    _write_fake_upstream(repo)
+    checkpoint = tmp_path / "model.ckpt"
+    checkpoint.write_text("fake")
+    model = Sam3DBodyModel(
+        weights_path=checkpoint,
+        device="cuda",
+        adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
+    )
+    session = model.load()
+
+    with pytest.raises(Sam3DBodyInputError, match="image path does not exist"):
+        session.predict(tmp_path / "missing.png")
+
+
+def test_predict_rejects_non_cuda_device_before_upstream_call(tmp_path: Path) -> None:
+    repo = tmp_path / "sam-3d-body"
+    _write_fake_upstream(repo)
+    checkpoint = tmp_path / "model.ckpt"
+    image_path = tmp_path / "image.png"
+    checkpoint.write_text("fake")
+    image_path.write_bytes(b"fake")
+    model = Sam3DBodyModel(
+        weights_path=checkpoint,
+        device="cpu",
+        adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
+    )
+    session = model.load()
+
+    with pytest.raises(Sam3DBodyInputError, match="requires a CUDA device"):
+        session.predict(image_path)
+
+
+def test_predict_validates_bboxes_masks_and_inference_type(tmp_path: Path) -> None:
+    repo = tmp_path / "sam-3d-body"
+    _write_fake_upstream(repo)
+    checkpoint = tmp_path / "model.ckpt"
+    image_path = tmp_path / "image.png"
+    checkpoint.write_text("fake")
+    image_path.write_bytes(b"fake")
+    model = Sam3DBodyModel(
+        weights_path=checkpoint,
+        device="cuda",
+        adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
+    )
+    session = model.load()
+
+    with pytest.raises(Sam3DBodyInputError, match="bboxes must have shape N x 4"):
+        session.predict(image_path, bboxes=[1, 2, 3, 4])
+
+    with pytest.raises(Sam3DBodyInputError, match="masks require bboxes"):
+        session.predict(image_path, masks=[[[1]]])
+
+    with pytest.raises(Sam3DBodyInputError, match="inference_type must be one of"):
+        session.predict(image_path, inference_type="invalid")

@@ -114,3 +114,9 @@ result = session.predict(image)
 ```
 
 The session is the preferred API for real upstream inference because checkpoint loading is expensive.
+
+## Prediction Validation and Device Support
+
+Public prediction must validate image input, optional boxes, masks, camera intrinsics, threshold values, inference type, and configured execution device before invoking upstream inference.
+
+Real upstream prediction is CUDA-only in the current integration because the upstream estimator moves inference batches to `"cuda"` internally. A non-CUDA `device` may still be preserved in the immutable model configuration and passed to the loader, but prediction with that loaded session is unsupported until upstream device handling is wrapped or patched.

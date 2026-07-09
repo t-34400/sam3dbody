@@ -99,3 +99,27 @@ A persistent wrapper session owns a loaded upstream model handle and may reuse a
 The public immutable model object represents configuration. It may construct a temporary session for convenience prediction, but the session API is the stable path for repeated inference.
 
 Session prediction uses the same single-image input contract and output conversion rules as the adapter prediction call.
+
+## Initial Prediction Validation Contract
+
+The wrapper must validate public single-image prediction inputs before calling the upstream estimator.
+
+The initial validation contract is intentionally conservative:
+
+* filesystem image inputs must refer to an existing file;
+* in-memory image inputs must expose an `H x W x C` shape with `C == 3` and are treated as RGB;
+* `bboxes`, when supplied, must have shape `N x 4`;
+* `masks`, when supplied, must have shape `N x H x W`;
+* masks require bboxes because upstream mask-conditioned inference requires explicit boxes;
+* if both bboxes and masks are supplied, their first dimension must match;
+* `cam_int`, when supplied, must have shape `3 x 3` and must be tensor-like with `.to(...)` because upstream moves it to the batch device;
+* `bbox_thr` and `nms_thr` must be numeric values in `[0, 1]`;
+* `inference_type` must be one of `full`, `body`, or `hand`.
+
+Invalid public inputs must fail with a wrapper-owned input error before upstream inference is called.
+
+## CUDA Requirement
+
+Real upstream prediction currently requires CUDA because the upstream estimator moves inference batches to the literal device string `"cuda"` internally.
+
+The wrapper may continue to accept a device value at model-load time because the upstream load function accepts one. However, public prediction must not imply working CPU inference. Until upstream device handling is wrapped or patched, prediction with a non-CUDA configured device must fail before calling upstream inference.
