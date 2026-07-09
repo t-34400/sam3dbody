@@ -29,6 +29,9 @@ Excluded artifacts include at least:
 * `*.egg-info/`
 * `build/`
 * `dist/`
+* repository `.git/` directories
+
+Source archives must also exclude the local upstream checkout under `third_party/sam-3d-body/`. The upstream source tree is prepared explicitly through `sam3dbody install-upstream` and must not be bundled accidentally into wrapper source archives.
 
 Generated artifacts should be recreated by local tooling rather than stored in source archives.
 

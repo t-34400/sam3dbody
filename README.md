@@ -73,3 +73,5 @@ sam3dbody infer image.png \
 ```
 
 Checkpoints, MHR assets, CUDA, PyTorch, Detectron2, SAM3, and other upstream inference requirements are external runtime prerequisites. They are not bundled into this wrapper package.
+
+Source archives produced by `scripts/package_source.py` intentionally exclude `third_party/sam-3d-body/` and Git metadata. Recreate upstream source locally with `sam3dbody install-upstream` after installing or unpacking the wrapper.

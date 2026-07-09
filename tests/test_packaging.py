@@ -30,3 +30,21 @@ def test_source_packaging_script_excludes_generated_artifacts(tmp_path: Path) ->
     assert not any(name.endswith(".pyc") for name in names)
     assert not any(".egg-info" in name for name in names)
     assert "scripts/package_source.py" in names
+
+
+def test_source_packaging_script_excludes_upstream_checkout(tmp_path: Path) -> None:
+    from scripts.package_source import create_source_archive
+
+    upstream_root = Path("third_party/sam-3d-body")
+    upstream_root.mkdir(parents=True, exist_ok=True)
+    (upstream_root / "sam_3d_body").mkdir(parents=True, exist_ok=True)
+    (upstream_root / "sam_3d_body" / "__init__.py").write_text("# upstream")
+    archive_path = tmp_path / "source.zip"
+    create_source_archive(Path.cwd(), archive_path)
+
+    with ZipFile(archive_path) as archive:
+        names = archive.namelist()
+
+    assert ".gitmodules" in names
+    assert not any(name.startswith("third_party/sam-3d-body/") for name in names)
+    assert not any("/.git/" in name or name.startswith(".git/") for name in names)

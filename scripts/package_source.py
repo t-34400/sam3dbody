@@ -12,6 +12,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 EXCLUDED_PART_NAMES = {
     "__pycache__",
     ".pytest_cache",
+    ".git",
     ".mypy_cache",
     ".ruff_cache",
     ".tox",
@@ -26,11 +27,17 @@ EXCLUDED_NAME_PATTERNS = (
     "*.egg-info",
 )
 
+EXCLUDED_RELATIVE_PREFIXES = (
+    ("third_party", "sam-3d-body"),
+)
+
 
 def should_exclude(path: Path, root: Path) -> bool:
     """Return whether a repository-relative path is a generated artifact."""
     relative = path.relative_to(root)
     if any(part in EXCLUDED_PART_NAMES for part in relative.parts):
+        return True
+    if any(relative.parts[: len(prefix)] == prefix for prefix in EXCLUDED_RELATIVE_PREFIXES):
         return True
     return any(fnmatch.fnmatch(part, pattern) for part in relative.parts for pattern in EXCLUDED_NAME_PATTERNS)
 
