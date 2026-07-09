@@ -56,3 +56,13 @@ def test_environment_report_exposes_missing_requirements(tmp_path: Path) -> None
     assert any("weights file" in item for item in missing)
     assert any("missing importable modules" in item for item in missing)
     assert payload["missing_requirements"] == list(missing)
+
+
+def test_check_environment_default_upstream_root_can_be_monkeypatched(monkeypatch: object, tmp_path: Path) -> None:
+    import sam3dbody.environment as environment
+
+    monkeypatch.setattr(environment, "default_upstream_root", lambda: tmp_path / ".local" / "upstream" / "sam-3d-body")
+
+    report = environment.check_environment(modules=())
+
+    assert report.upstream_root == tmp_path / ".local" / "upstream" / "sam-3d-body"

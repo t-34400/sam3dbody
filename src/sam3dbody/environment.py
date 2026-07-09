@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Mapping
 
 from sam3dbody.adapters import Sam3DBodyUpstreamRepository
+from sam3dbody.paths import default_upstream_root
 
 
 DEFAULT_INFERENCE_MODULES = (
@@ -94,7 +95,7 @@ def check_environment(
 ) -> Sam3DBodyEnvironmentReport:
     """Check local prerequisites without importing upstream code or loading weights."""
     repository = (
-        Sam3DBodyUpstreamRepository.from_source_tree()
+        Sam3DBodyUpstreamRepository(root=default_upstream_root())
         if upstream_root is None
         else Sam3DBodyUpstreamRepository(root=Path(upstream_root))
     )

@@ -22,11 +22,7 @@ sam3dbody inspect-deps [--upstream-root PATH] [--json]
 
 The command must not import upstream modules or execute upstream inference code.
 
-When `--upstream-root` is omitted, the command uses the source-tree upstream repository under:
-
-```text
-third_party/sam-3d-body
-```
+When `--upstream-root` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.
 
 When `--json` is provided, the command prints a JSON object using the wrapper-owned dependency report schema.
 
@@ -50,11 +46,7 @@ The command checks at least:
 * whether representative inference dependency modules are importable;
 * whether CUDA appears available through torch when torch is importable.
 
-When `--upstream-root` is omitted, the command uses the source-tree upstream repository under:
-
-```text
-third_party/sam-3d-body
-```
+When `--upstream-root` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.
 
 When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary. The human-readable summary must include a `missing_requirements` section that lists the readiness blockers used to decide `ready_for_inference`, or `none` when no blockers are present.
 
@@ -72,11 +64,7 @@ sam3dbody plan-upstream-setup [--target PATH] [--source-url URL] [--revision REV
 
 The command must not clone repositories, initialize Git submodules, download checkpoints, install dependencies, import upstream modules, or otherwise mutate the filesystem. It is intended to make the future setup workflow explicit before an installing command is implemented.
 
-When `--target` is omitted, the command uses the development-layout upstream location:
-
-```text
-third_party/sam-3d-body
-```
+When `--target` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.
 
 The command reports whether the target exists, whether the upstream `sam_3d_body` package directory exists, and a suggested command list. When the upstream package directory already exists, the command reports status `ready`. When the target is missing, it reports status `missing`. When the target exists but does not contain the upstream package directory, it reports status `incomplete`.
 
@@ -92,11 +80,7 @@ sam3dbody install-upstream [--target PATH] [--source-url URL] [--revision REV] [
 
 `install-upstream` is the explicit mutating setup path for preparing the upstream SAM 3D Body source tree. It may create parent directories for the target, clone the upstream repository when the target is missing, optionally check out a requested revision, and optionally initialize upstream submodules recursively.
 
-When `--target` is omitted, the command uses the development-layout upstream location:
-
-```text
-third_party/sam-3d-body
-```
+When `--target` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.
 
 When the target already contains the upstream `sam_3d_body` package directory, the command treats the source tree as ready. With recursive setup enabled, it may run recursive submodule initialization against the ready tree. With `--no-recursive`, it performs no Git command for an already-ready target.
 

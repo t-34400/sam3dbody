@@ -89,3 +89,9 @@ def test_install_upstream_source_reports_already_ready_without_recursive(tmp_pat
     assert result.status == "ready"
     assert result.commands_run == ()
     assert commands == []
+
+
+def test_default_upstream_root_uses_source_checkout_layout() -> None:
+    from sam3dbody.paths import default_upstream_root
+
+    assert default_upstream_root().as_posix().endswith("third_party/sam-3d-body")

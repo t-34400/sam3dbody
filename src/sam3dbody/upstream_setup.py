@@ -8,9 +8,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from sam3dbody.paths import default_upstream_root
+
 
 DEFAULT_UPSTREAM_SOURCE_URL = "https://github.com/facebookresearch/sam-3d-body.git"
-DEFAULT_UPSTREAM_TARGET = Path("third_party/sam-3d-body")
 
 GitRunner = Callable[[Sequence[str]], Any]
 
@@ -120,7 +121,7 @@ def plan_upstream_setup(
     recursive: bool = True,
 ) -> Sam3DBodyUpstreamSetupPlan:
     """Create a non-mutating plan for preparing upstream source code."""
-    setup_target = target if target is not None else DEFAULT_UPSTREAM_TARGET
+    setup_target = target if target is not None else default_upstream_root()
     return Sam3DBodyUpstreamSetupPlan(
         target=setup_target,
         source_url=source_url,

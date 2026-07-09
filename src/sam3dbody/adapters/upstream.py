@@ -14,6 +14,7 @@ from .loader import (
     Sam3DBodyUpstreamLoader,
     _prepend_sys_path,
 )
+from sam3dbody.paths import default_upstream_root
 from sam3dbody.result import Sam3DBodyMetadata, Sam3DBodyPrediction, Sam3DBodyResult
 from sam3dbody.validation import validate_prediction_inputs
 
@@ -26,9 +27,8 @@ class Sam3DBodyUpstreamRepository:
 
     @classmethod
     def from_source_tree(cls) -> "Sam3DBodyUpstreamRepository":
-        """Return the default upstream repository location in this source tree."""
-        project_root = Path(__file__).resolve().parents[3]
-        return cls(root=project_root / "third_party" / "sam-3d-body")
+        """Return the default upstream repository location for this install layout."""
+        return cls(root=default_upstream_root())
 
     @property
     def exists(self) -> bool:

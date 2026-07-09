@@ -67,7 +67,7 @@ The initial supported explicit setup path is:
 sam3dbody install-upstream
 ```
 
-This command prepares upstream source code under the development-layout target by default. It does not make the environment inference-ready by itself because checkpoints, MHR assets, platform-specific dependencies, and CUDA availability remain separate requirements.
+This command prepares upstream source code under the wrapper default upstream location. Source checkouts use `third_party/sam-3d-body`; installed packages use `.local/upstream/sam-3d-body` under the current working directory so setup does not mutate `site-packages` or a virtual environment. It does not make the environment inference-ready by itself because checkpoints, MHR assets, platform-specific dependencies, and CUDA availability remain separate requirements.
 
 The selected approach specifies:
 

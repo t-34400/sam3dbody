@@ -529,3 +529,31 @@ def test_cli_smoke_test_rejects_negative_repeat(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="--repeat"):
         main(["smoke-test", str(image), "--weights", str(weights), "--repeat", "-1"])
+
+
+def test_cli_check_env_default_does_not_force_site_packages(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    import sam3dbody.environment as environment
+
+    default_root = tmp_path / ".local" / "upstream" / "sam-3d-body"
+    monkeypatch.setattr(environment, "default_upstream_root", lambda: default_root)
+
+    exit_code = main(["check-env", "--json"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["upstream_root"] == str(default_root)
+    assert ".venv" not in payload["upstream_root"]
+    assert "site-packages" not in payload["upstream_root"]
+
+
+def test_cli_plan_upstream_setup_default_target_can_be_user_local(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    import sam3dbody.upstream_setup as upstream_setup
+
+    default_root = tmp_path / ".local" / "upstream" / "sam-3d-body"
+    monkeypatch.setattr(upstream_setup, "default_upstream_root", lambda: default_root)
+
+    exit_code = main(["plan-upstream-setup", "--json"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["target"] == str(default_root)

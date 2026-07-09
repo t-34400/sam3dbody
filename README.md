@@ -26,10 +26,10 @@ Real inference requires the upstream SAM 3D Body source tree in addition to this
 sam3dbody install-upstream
 ```
 
-By default this prepares:
+By default this prepares `third_party/sam-3d-body` in a source checkout. When the wrapper is installed from a wheel or Git URL, the default is `.local/upstream/sam-3d-body` under the current working directory, not inside the virtual environment. You can always choose an explicit target:
 
-```text
-third_party/sam-3d-body
+```bash
+sam3dbody install-upstream --target .local/upstream/sam-3d-body
 ```
 
 To inspect what would be done without mutating the filesystem:
