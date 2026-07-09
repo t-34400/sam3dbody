@@ -62,7 +62,7 @@ def test_base_dependencies_include_ordinary_pypi_runtime_prerequisites() -> None
     assert "yacs" in base_dependencies
     assert "scikit-image" in base_dependencies
     assert "einops" in base_dependencies
-    assert "timm" in base_dependencies
+    assert "timm" not in base_dependencies
     assert "pandas" in base_dependencies
     assert "rich" in base_dependencies
     assert "hydra-core" in base_dependencies
@@ -85,6 +85,7 @@ def test_platform_specific_upstream_dependencies_are_not_base_requirements() -> 
 
     assert "torch" not in base_dependencies
     assert "torchvision" not in base_dependencies
+    assert "timm" not in base_dependencies
     assert "detectron2" not in base_dependencies
     assert "detectron2" not in inference
     assert not any("git+https://github.com/facebookresearch/sam3" in dep for dep in inference)

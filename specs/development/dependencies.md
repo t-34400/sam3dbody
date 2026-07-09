@@ -22,21 +22,20 @@ The base package should keep wrapper dependencies modest but practical for the d
 
 Base installation must support importing `sam3dbody`, using non-inference wrapper objects, running CLI diagnostics, and satisfying the PyPI-installable representative runtime modules checked by `check-env`, except for platform-specific packages.
 
-The following representative PyPI packages are base runtime dependencies because they are ordinary packaging-tool-installable prerequisites reported by the wrapper environment check:
+The following representative PyPI packages are base runtime dependencies because they are ordinary packaging-tool-installable prerequisites reported by the wrapper environment check that do not pull PyTorch transitively:
 
 ```text
 opencv-python
 yacs
 scikit-image
 einops
-timm
 pandas
 rich
 hydra-core
 huggingface_hub
 ```
 
-These base dependencies do not make the environment inference-ready by themselves. They only remove ordinary PyPI dependency setup from the manual post-install checklist.
+These base dependencies do not make the environment inference-ready by themselves. They only remove ordinary PyPI dependency setup from the manual post-install checklist when those dependencies do not pull PyTorch transitively. Packages such as `timm` are real-inference prerequisites but are excluded from base dependencies because they depend on PyTorch and can cause packaging tools to select an environment-inappropriate Torch build.
 
 ## Upstream Dependency Policy
 
@@ -81,6 +80,7 @@ The `inference` extra contains additional PyPI-installable packages observed in 
 The `inference` extra is allowed to be incomplete with respect to non-PyPI or platform-specific requirements. In particular:
 
 * PyTorch installation remains user/environment specific and should follow the official PyTorch installation selector.
+* `timm` remains outside the base dependencies because it depends on PyTorch and may cause package managers to install an unintended Torch build. Install it as part of the explicit real-inference environment after selecting a Torch build.
 * Detectron2 remains outside the `inference` extra because upstream currently requires a pinned Git installation with custom installer flags.
 * MoGe remains outside the `inference` extra because upstream marks it optional.
 * SAM3 remains outside the `inference` extra because upstream requires cloning and editable installation of a separate repository.
@@ -104,7 +104,7 @@ Optional dependencies must be tested as declared metadata. Lightweight tests mus
 
 Dependency tests should verify that:
 
-* base dependencies include the documented ordinary PyPI prerequisites;
+* base dependencies include the documented ordinary PyPI prerequisites that do not pull PyTorch transitively;
 * the `inference` extra is declared;
 * platform-specific and non-PyPI upstream-only packages do not become base requirements;
 * static dependency inspection remains non-invasive.
