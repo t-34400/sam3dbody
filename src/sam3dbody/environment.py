@@ -39,16 +39,34 @@ class Sam3DBodyEnvironmentReport:
     torch_cuda_available: bool | None
 
     @property
+    def missing_requirements(self) -> tuple[str, ...]:
+        """Return human-readable readiness blockers."""
+        missing: list[str] = []
+        if not self.upstream_exists:
+            missing.append(f"upstream source tree does not exist: {self.upstream_root}")
+        elif not self.upstream_package_exists:
+            missing.append(f"upstream package directory is missing: {self.upstream_root / 'sam_3d_body'}")
+
+        if self.weights_path is None:
+            missing.append("weights path was not provided")
+        elif self.weights_exists is not True:
+            missing.append(f"weights file does not exist: {self.weights_path}")
+
+        if self.mhr_exists is False:
+            missing.append(f"MHR asset does not exist: {self.mhr_path}")
+
+        unavailable_modules = [module for module, available in self.modules.items() if not available]
+        if unavailable_modules:
+            missing.append("missing importable modules: " + ", ".join(unavailable_modules))
+
+        if self.torch_cuda_available is not True:
+            missing.append("CUDA is not available through torch")
+        return tuple(missing)
+
+    @property
     def ready_for_inference(self) -> bool:
         """Return whether required local preconditions appear satisfied."""
-        return (
-            self.upstream_exists
-            and self.upstream_package_exists
-            and self.weights_exists is True
-            and all(self.modules.values())
-            and self.torch_cuda_available is True
-            and self.mhr_exists is not False
-        )
+        return not self.missing_requirements
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable report."""
@@ -62,6 +80,7 @@ class Sam3DBodyEnvironmentReport:
             "mhr_exists": self.mhr_exists,
             "modules": dict(self.modules),
             "torch_cuda_available": self.torch_cuda_available,
+            "missing_requirements": list(self.missing_requirements),
             "ready_for_inference": self.ready_for_inference,
         }
 

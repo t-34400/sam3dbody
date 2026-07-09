@@ -194,6 +194,13 @@ def _run_check_env(args: argparse.Namespace) -> int:
         print(f"mhr_exists: {payload['mhr_exists']}")
         print(f"torch_cuda_available: {payload['torch_cuda_available']}")
         print(f"ready_for_inference: {payload['ready_for_inference']}")
+        missing_requirements = payload.get("missing_requirements", [])
+        if missing_requirements:
+            print("missing_requirements:")
+            for requirement in missing_requirements:
+                print(f"  - {requirement}")
+        else:
+            print("missing_requirements: none")
         print("modules:")
         for module, available in payload["modules"].items():
             print(f"  - {module}: {available}")

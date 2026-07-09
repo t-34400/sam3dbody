@@ -56,7 +56,7 @@ When `--upstream-root` is omitted, the command uses the source-tree upstream rep
 third_party/sam-3d-body
 ```
 
-When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary.
+When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary. The human-readable summary must include a `missing_requirements` section that lists the readiness blockers used to decide `ready_for_inference`, or `none` when no blockers are present.
 
 By default, `check-env` exits with status code `0` after reporting diagnostics, even when the environment is not inference-ready. When `--strict` is provided, the command exits with status code `0` only if the report is ready for inference, and exits with status code `1` otherwise.
 

@@ -76,3 +76,5 @@ Until this TODO is resolved, source checkouts with initialized submodules are th
 A diagnostic command may report missing upstream source, missing checkpoints, missing inference dependencies, and CUDA availability. Such diagnostics do not satisfy this TODO unless they also define and implement the setup or download behavior.
 
 For CI or scripted validation, diagnostic commands may provide a strict mode that returns a non-zero exit status when required inference prerequisites are missing. Strict diagnostics are still validation aids only and must not mutate the filesystem or install upstream assets.
+
+Human-readable environment diagnostics should summarize the missing inference prerequisites that prevent strict readiness so users can distinguish missing paths, missing Python modules, and unavailable CUDA without inspecting JSON manually.

@@ -40,3 +40,19 @@ def test_environment_report_serializes_paths(tmp_path: Path) -> None:
     assert payload["upstream_root"] == str(upstream_root)
     assert payload["weights_path"] == str(weights)
     assert payload["weights_exists"] is False
+
+
+def test_environment_report_exposes_missing_requirements(tmp_path: Path) -> None:
+    report = check_environment(
+        upstream_root=tmp_path / "missing-upstream",
+        weights_path=tmp_path / "missing.ckpt",
+        modules=("definitely_missing_sam3dbody_dependency",),
+    )
+
+    missing = report.missing_requirements
+    payload = report.to_dict()
+    assert report.ready_for_inference is False
+    assert any("upstream source tree" in item for item in missing)
+    assert any("weights file" in item for item in missing)
+    assert any("missing importable modules" in item for item in missing)
+    assert payload["missing_requirements"] == list(missing)

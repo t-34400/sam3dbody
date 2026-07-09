@@ -347,3 +347,47 @@ def test_cli_check_env_strict_returns_zero_when_ready(monkeypatch: pytest.Monkey
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["ready_for_inference"] is True
+
+
+def test_cli_check_env_human_output_lists_missing_requirements(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main([
+        "check-env",
+        "--upstream-root",
+        str(tmp_path / "missing-upstream"),
+        "--weights",
+        str(tmp_path / "missing.ckpt"),
+    ])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "missing_requirements:" in output
+    assert "upstream source tree" in output
+    assert "weights file" in output
+
+
+def test_cli_check_env_human_output_reports_no_missing_requirements(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    class FakeReport:
+        ready_for_inference = True
+
+        def to_dict(self) -> dict[str, object]:
+            return {
+                "upstream_root": "/fake/upstream",
+                "upstream_exists": True,
+                "upstream_package_exists": True,
+                "weights_path": "/fake/model.ckpt",
+                "weights_exists": True,
+                "mhr_path": None,
+                "mhr_exists": None,
+                "modules": {"torch": True},
+                "torch_cuda_available": True,
+                "missing_requirements": [],
+                "ready_for_inference": True,
+            }
+
+    monkeypatch.setattr("sam3dbody.cli.check_environment", lambda **kwargs: FakeReport())
+
+    exit_code = main(["check-env"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert "missing_requirements: none" in output
