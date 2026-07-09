@@ -57,23 +57,33 @@ def run_smoke_test(config: Sam3DBodySmokeTestConfig) -> dict[str, Any]:
         if config.upstream_root is not None
         else None
     )
-    model = Sam3DBodyModel(
-        weights_path=config.weights_path,
-        device=config.device,
-        config=model_config,
-        adapter=adapter,
-    )
-    session = model.load()
-    single_result = session.predict(config.image)
-    report["single"] = summarize_result(single_result)
+    try:
+        model = Sam3DBodyModel(
+            weights_path=config.weights_path,
+            device=config.device,
+            config=model_config,
+            adapter=adapter,
+        )
+        session = model.load()
+        single_result = session.predict(config.image)
+        report["single"] = summarize_result(single_result)
 
-    if config.repeat > 0:
-        batch_results = session.predict_many([config.image] * config.repeat)
-        report["batch"] = {
-            "requested_count": config.repeat,
-            "result_count": len(batch_results),
-            "results": [summarize_result(result) for result in batch_results],
+        if config.repeat > 0:
+            batch_results = session.predict_many([config.image] * config.repeat)
+            report["batch"] = {
+                "requested_count": config.repeat,
+                "result_count": len(batch_results),
+                "results": [summarize_result(result) for result in batch_results],
+            }
+    except Exception as exc:  # pragma: no cover - concrete upstream failures vary by environment.
+        report["success"] = False
+        report["message"] = f"real upstream inference smoke test failed: {exc}"
+        report["error"] = {
+            "type": type(exc).__name__,
+            "message": str(exc),
         }
+        return report
+
     report["success"] = True
     report["message"] = "real upstream inference smoke test completed"
     return report

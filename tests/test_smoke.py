@@ -76,6 +76,39 @@ def test_run_smoke_test_uses_real_api_path_with_fake_upstream(tmp_path: Path) ->
     assert report["batch"]["result_count"] == 2
 
 
+
+
+def test_run_smoke_test_captures_runtime_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    image = tmp_path / "image.png"
+    weights = tmp_path / "model.ckpt"
+    upstream_root = tmp_path / "sam-3d-body"
+    image.write_bytes(b"fake")
+    weights.write_text("fake")
+    upstream_root.mkdir()
+
+    class FailingModel:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def load(self) -> object:
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr("sam3dbody.smoke.Sam3DBodyModel", FailingModel)
+
+    report = run_smoke_test(
+        Sam3DBodySmokeTestConfig(
+            image=image,
+            weights_path=weights,
+            upstream_root=upstream_root,
+            skip_env_check=True,
+        )
+    )
+
+    assert report["success"] is False
+    assert "boom" in report["message"]
+    assert report["error"] == {"type": "RuntimeError", "message": "boom"}
+
+
 def test_run_smoke_test_rejects_negative_repeat(tmp_path: Path) -> None:
     image = tmp_path / "image.png"
     weights = tmp_path / "model.ckpt"

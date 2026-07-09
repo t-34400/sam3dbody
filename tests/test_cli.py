@@ -521,6 +521,38 @@ def test_cli_smoke_test_writes_json_output(tmp_path: Path, monkeypatch: pytest.M
     assert getattr(config, "skip_env_check") is True
 
 
+
+
+def test_cli_smoke_test_prints_failure_summary_with_json_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    image = tmp_path / "image.png"
+    weights = tmp_path / "model.ckpt"
+    output = tmp_path / "smoke" / "report.json"
+    image.write_bytes(b"fake")
+    weights.write_text("fake")
+
+    def fake_run_smoke_test(config: object) -> dict[str, object]:
+        return {
+            "success": False,
+            "message": "real upstream inference smoke test failed: missing module",
+            "error": {"type": "ModuleNotFoundError", "message": "No module named 'example'"},
+        }
+
+    monkeypatch.setattr("sam3dbody.cli.run_smoke_test", fake_run_smoke_test)
+
+    exit_code = main(["smoke-test", str(image), "--weights", str(weights), "--output", str(output)])
+
+    captured = capsys.readouterr()
+    payload = json.loads(output.read_text())
+    assert exit_code == 1
+    assert payload["success"] is False
+    assert "smoke report written" in captured.out
+    assert str(output) in captured.out
+    assert "smoke test failed" in captured.err
+    assert "No module named 'example'" in captured.err
+
+
 def test_cli_smoke_test_rejects_negative_repeat(tmp_path: Path) -> None:
     image = tmp_path / "image.png"
     weights = tmp_path / "model.ckpt"

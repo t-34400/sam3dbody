@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -491,10 +492,18 @@ def _run_smoke_test(args: argparse.Namespace) -> int:
             skip_env_check=args.skip_env_check,
         )
     )
+    success = report.get("success") is True
     payload = json.dumps(_json_safe(report), indent=2, sort_keys=True)
     if args.output is None:
         print(payload)
     else:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(payload + "\n")
-    return 0 if report.get("success") is True else 1
+        print(f"smoke report written: {args.output}")
+        if not success:
+            message = report.get("message", "smoke test failed")
+            print(f"smoke test failed: {message}", file=sys.stderr)
+            error = report.get("error")
+            if isinstance(error, dict) and error.get("message"):
+                print(f"error: {error.get('message')}", file=sys.stderr)
+    return 0 if success else 1

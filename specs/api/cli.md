@@ -138,7 +138,7 @@ sam3dbody smoke-test IMAGE --weights PATH [--output PATH] [--device DEVICE] [--m
 
 The command first runs the same non-mutating prerequisite checks as `check-env`. Unless `--skip-env-check` is supplied, the command must not attempt model loading or inference when the environment report is not ready for inference. In that case it writes a smoke report with `success: false` and exits with status code `1`.
 
-When prerequisites are ready, or when `--skip-env-check` is supplied, the command loads the wrapper model through the public wrapper API and runs one `session.predict(IMAGE)` call. When `--repeat N` is greater than zero, the command must also run `session.predict_many([IMAGE] * N)` to exercise the ordered repeated-inference path.
+When prerequisites are ready, or when `--skip-env-check` is supplied, the command loads the wrapper model through the public wrapper API and runs one `session.predict(IMAGE)` call. When `--repeat N` is greater than zero, the command must also run `session.predict_many([IMAGE] * N)` to exercise the ordered repeated-inference path. Runtime failures during model loading or inference must be captured in the smoke report as `success: false` rather than escaping as an unstructured traceback.
 
 The command writes a wrapper-owned JSON report. The report must include:
 
@@ -151,7 +151,7 @@ The command writes a wrapper-owned JSON report. The report must include:
 
 Result summaries must avoid embedding full tensors or arrays. They should record body counts, metadata, field presence, field type, shape, dtype when available, bbox values, and extra output keys. This command is a diagnostic aid and does not define stable model accuracy expectations.
 
-`--repeat` must be greater than or equal to zero. The command exits with status code `0` only when the smoke test completes successfully.
+`--repeat` must be greater than or equal to zero. The command exits with status code `0` only when the smoke test completes successfully. When `--output` is provided, the command must still print the report path on success or failure. When the smoke report has `success: false`, the command must also print a concise failure summary to stderr so users are not left with a silent non-zero exit.
 
 The underlying `run_smoke_test()` API must enforce the same non-negative `repeat` requirement so direct API callers cannot bypass CLI validation.
 
