@@ -27,6 +27,9 @@ class Sam3DBodySmokeTestConfig:
 
 def run_smoke_test(config: Sam3DBodySmokeTestConfig) -> dict[str, Any]:
     """Run a minimal real-inference smoke test and return a JSON-ready report."""
+    if config.repeat < 0:
+        raise ValueError("repeat must be greater than or equal to 0")
+
     environment = check_environment(
         upstream_root=config.upstream_root,
         weights_path=config.weights_path,

@@ -1,6 +1,8 @@
 from pathlib import Path
 import sys
 
+import pytest
+
 from sam3dbody.smoke import Sam3DBodySmokeTestConfig, run_smoke_test, summarize_result
 from sam3dbody.result import Sam3DBodyMetadata, Sam3DBodyPrediction, Sam3DBodyResult
 
@@ -72,3 +74,20 @@ def test_run_smoke_test_uses_real_api_path_with_fake_upstream(tmp_path: Path) ->
     assert report["single"]["bodies"][0]["vertices"]["dtype"] == "float32"
     assert report["batch"]["requested_count"] == 2
     assert report["batch"]["result_count"] == 2
+
+
+def test_run_smoke_test_rejects_negative_repeat(tmp_path: Path) -> None:
+    image = tmp_path / "image.png"
+    weights = tmp_path / "model.ckpt"
+    image.write_bytes(b"fake")
+    weights.write_text("fake")
+
+    with pytest.raises(ValueError, match="repeat"):
+        run_smoke_test(
+            Sam3DBodySmokeTestConfig(
+                image=image,
+                weights_path=weights,
+                repeat=-1,
+                skip_env_check=True,
+            )
+        )

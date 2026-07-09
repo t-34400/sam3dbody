@@ -168,6 +168,8 @@ Result summaries must avoid embedding full tensors or arrays. They should record
 
 `--repeat` must be greater than or equal to zero. The command exits with status code `0` only when the smoke test completes successfully.
 
+The underlying `run_smoke_test()` API must enforce the same non-negative `repeat` requirement so direct API callers cannot bypass CLI validation.
+
 
 ## Future Commands
 
