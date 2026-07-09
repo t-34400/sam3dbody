@@ -62,6 +62,28 @@ By default, `check-env` exits with status code `0` after reporting diagnostics, 
 
 `check-env` is diagnostic only. It must not attempt to initialize Git submodules, clone upstream repositories, download checkpoints, import upstream modules, or mutate the filesystem.
 
+## Upstream Setup Planning Command
+
+```text
+sam3dbody plan-upstream-setup [--target PATH] [--source-url URL] [--revision REV] [--no-recursive] [--json]
+```
+
+`plan-upstream-setup` prints a non-mutating plan for preparing the upstream SAM 3D Body source tree.
+
+The command must not clone repositories, initialize Git submodules, download checkpoints, install dependencies, import upstream modules, or otherwise mutate the filesystem. It is intended to make the future setup workflow explicit before an installing command is implemented.
+
+When `--target` is omitted, the command uses the development-layout upstream location:
+
+```text
+third_party/sam-3d-body
+```
+
+The command reports whether the target exists, whether the upstream `sam_3d_body` package directory exists, and a suggested command list. When the upstream package directory already exists, the command reports status `ready`. When the target is missing, it reports status `missing`. When the target exists but does not contain the upstream package directory, it reports status `incomplete`.
+
+When `--json` is provided, the command prints a JSON object using the wrapper-owned upstream setup plan schema. Without `--json`, the command prints a human-readable summary.
+
+`plan-upstream-setup` always exits with status code `0` because it is advisory and non-mutating. Readiness enforcement remains the responsibility of `check-env --strict`.
+
 ## Single Image Inference Command
 
 ```text
@@ -101,7 +123,7 @@ The JSON output must be derived from `Sam3DBodyResult.to_dict()`. Values that ar
 
 Future CLI commands may include:
 
-* upstream setup
+* mutating upstream setup
 * checkpoint download
 * batch inference
 * output conversion

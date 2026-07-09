@@ -78,3 +78,5 @@ A diagnostic command may report missing upstream source, missing checkpoints, mi
 For CI or scripted validation, diagnostic commands may provide a strict mode that returns a non-zero exit status when required inference prerequisites are missing. Strict diagnostics are still validation aids only and must not mutate the filesystem or install upstream assets.
 
 Human-readable environment diagnostics should summarize the missing inference prerequisites that prevent strict readiness so users can distinguish missing paths, missing Python modules, and unavailable CUDA without inspecting JSON manually.
+
+A non-mutating upstream setup planning command may be provided before a mutating installer exists. Such a command may suggest clone and submodule commands, but it must not be documented as completing upstream setup by itself.

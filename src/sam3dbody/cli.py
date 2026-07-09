@@ -10,6 +10,7 @@ from typing import Any, Sequence
 from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
 from sam3dbody.environment import check_environment
 from sam3dbody.model import Sam3DBodyModel
+from sam3dbody.upstream_setup import plan_upstream_setup
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -65,6 +66,39 @@ def build_parser() -> argparse.ArgumentParser:
         "--strict",
         action="store_true",
         help="exit with status 1 when the environment is not ready for inference",
+    )
+
+
+
+    plan_setup = subcommands.add_parser(
+        "plan-upstream-setup",
+        help="print a non-mutating plan for preparing upstream source code",
+    )
+    plan_setup.add_argument(
+        "--target",
+        type=Path,
+        default=None,
+        help="target directory for the upstream sam-3d-body source tree",
+    )
+    plan_setup.add_argument(
+        "--source-url",
+        default="https://github.com/facebookresearch/sam-3d-body.git",
+        help="Git URL used in the suggested clone command",
+    )
+    plan_setup.add_argument(
+        "--revision",
+        default=None,
+        help="optional upstream Git revision to include in the plan",
+    )
+    plan_setup.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="omit recursive submodule initialization from the suggested plan",
+    )
+    plan_setup.add_argument(
+        "--json",
+        action="store_true",
+        help="print the setup plan as JSON",
     )
 
     infer = subcommands.add_parser(
@@ -150,6 +184,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "check-env":
         return _run_check_env(args)
 
+    if args.command == "plan-upstream-setup":
+        return _run_plan_upstream_setup(args)
+
     if args.command == "infer":
         return _run_infer(args)
 
@@ -207,6 +244,34 @@ def _run_check_env(args: argparse.Namespace) -> int:
     if args.strict and not report.ready_for_inference:
         return 1
     return 0
+
+def _run_plan_upstream_setup(args: argparse.Namespace) -> int:
+    plan = plan_upstream_setup(
+        target=args.target,
+        source_url=args.source_url,
+        revision=args.revision,
+        recursive=not args.no_recursive,
+    )
+    payload = plan.to_dict()
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(f"target: {payload['target']}")
+        print(f"source_url: {payload['source_url']}")
+        print(f"revision: {payload['revision']}")
+        print(f"recursive: {payload['recursive']}")
+        print(f"status: {payload['status']}")
+        print(f"target_exists: {payload['target_exists']}")
+        print(f"upstream_package_exists: {payload['upstream_package_exists']}")
+        commands = payload.get("commands", [])
+        if commands:
+            print("commands:")
+            for command in commands:
+                print(f"  - {command}")
+        else:
+            print("commands: none")
+    return 0
+
 
 def _run_infer(args: argparse.Namespace) -> int:
     config = {}

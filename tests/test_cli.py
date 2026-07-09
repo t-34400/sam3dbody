@@ -391,3 +391,28 @@ def test_cli_check_env_human_output_reports_no_missing_requirements(monkeypatch:
     output = capsys.readouterr().out
     assert exit_code == 0
     assert "missing_requirements: none" in output
+
+
+def test_cli_plan_upstream_setup_outputs_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "sam-3d-body"
+
+    exit_code = main(["plan-upstream-setup", "--target", str(target), "--json"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["target"] == str(target)
+    assert payload["status"] == "missing"
+    assert payload["target_exists"] is False
+    assert payload["commands"][0].startswith("git clone ")
+
+
+def test_cli_plan_upstream_setup_human_output_reports_no_commands_for_ready_tree(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    target = tmp_path / "sam-3d-body"
+    (target / "sam_3d_body").mkdir(parents=True)
+
+    exit_code = main(["plan-upstream-setup", "--target", str(target), "--no-recursive"])
+
+    out = capsys.readouterr().out
+    assert exit_code == 0
+    assert "status: ready" in out
+    assert "commands: none" in out
