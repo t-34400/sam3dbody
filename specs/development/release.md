@@ -72,3 +72,5 @@ The selected approach must specify:
 * how source archives and wheels avoid accidentally depending on uninitialized Git submodules.
 
 Until this TODO is resolved, source checkouts with initialized submodules are the only supported development layout for upstream integration work.
+
+A diagnostic command may report missing upstream source, missing checkpoints, missing inference dependencies, and CUDA availability. Such diagnostics do not satisfy this TODO unless they also define and implement the setup or download behavior.

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
+from sam3dbody.environment import check_environment
 from sam3dbody.model import Sam3DBodyModel
 
 
@@ -30,6 +31,35 @@ def build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="print the dependency report as JSON",
+    )
+
+
+    check_env = subcommands.add_parser(
+        "check-env",
+        help="check local prerequisites for real upstream inference",
+    )
+    check_env.add_argument(
+        "--upstream-root",
+        type=Path,
+        default=None,
+        help="path to an upstream sam-3d-body source tree",
+    )
+    check_env.add_argument(
+        "--weights",
+        type=Path,
+        default=None,
+        help="optional path to the upstream SAM 3D Body checkpoint to verify",
+    )
+    check_env.add_argument(
+        "--mhr-path",
+        type=Path,
+        default=None,
+        help="optional path to the upstream MHR asset to verify",
+    )
+    check_env.add_argument(
+        "--json",
+        action="store_true",
+        help="print the environment report as JSON",
     )
 
     infer = subcommands.add_parser(
@@ -112,6 +142,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "inspect-deps":
         return _run_inspect_deps(args)
 
+    if args.command == "check-env":
+        return _run_check_env(args)
+
     if args.command == "infer":
         return _run_infer(args)
 
@@ -135,6 +168,31 @@ def _run_inspect_deps(args: argparse.Namespace) -> int:
             print(f"  - {module}")
     return 0
 
+
+
+def _run_check_env(args: argparse.Namespace) -> int:
+    report = check_environment(
+        upstream_root=args.upstream_root,
+        weights_path=args.weights,
+        mhr_path=args.mhr_path,
+    )
+    payload = report.to_dict()
+    if args.json:
+        print(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        print(f"upstream_root: {payload['upstream_root']}")
+        print(f"upstream_exists: {payload['upstream_exists']}")
+        print(f"upstream_package_exists: {payload['upstream_package_exists']}")
+        print(f"weights_path: {payload['weights_path']}")
+        print(f"weights_exists: {payload['weights_exists']}")
+        print(f"mhr_path: {payload['mhr_path']}")
+        print(f"mhr_exists: {payload['mhr_exists']}")
+        print(f"torch_cuda_available: {payload['torch_cuda_available']}")
+        print(f"ready_for_inference: {payload['ready_for_inference']}")
+        print("modules:")
+        for module, available in payload["modules"].items():
+            print(f"  - {module}: {available}")
+    return 0
 
 def _run_infer(args: argparse.Namespace) -> int:
     config = {}

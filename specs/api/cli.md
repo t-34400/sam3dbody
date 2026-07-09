@@ -32,6 +32,34 @@ When `--json` is provided, the command prints a JSON object using the wrapper-ow
 
 Without `--json`, the command prints a human-readable summary.
 
+
+## Environment Check Command
+
+```text
+sam3dbody check-env [--upstream-root PATH] [--weights PATH] [--mhr-path PATH] [--json]
+```
+
+`check-env` reports local prerequisites for real upstream inference without importing upstream modules, loading checkpoints, or running inference.
+
+The command checks at least:
+
+* whether the upstream source tree exists;
+* whether the upstream `sam_3d_body` package directory exists;
+* whether an explicitly supplied `--weights` path exists;
+* whether an explicitly supplied `--mhr-path` exists;
+* whether representative inference dependency modules are importable;
+* whether CUDA appears available through torch when torch is importable.
+
+When `--upstream-root` is omitted, the command uses the source-tree upstream repository under:
+
+```text
+third_party/sam-3d-body
+```
+
+When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary.
+
+`check-env` is diagnostic only. It must not attempt to initialize Git submodules, clone upstream repositories, download checkpoints, import upstream modules, or mutate the filesystem.
+
 ## Single Image Inference Command
 
 ```text
@@ -72,7 +100,7 @@ The JSON output must be derived from `Sam3DBodyResult.to_dict()`. Values that ar
 Future CLI commands may include:
 
 * upstream setup
-* checkpoint download or verification
+* checkpoint download
 * batch inference
 * output conversion
 * diagnostics

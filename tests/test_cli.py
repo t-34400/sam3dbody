@@ -253,3 +253,54 @@ def test_cli_infer_rejects_masks_json_object_without_masks_key(tmp_path: Path) -
 
     with pytest.raises(ValueError, match="masks"):
         _load_masks_json(masks_json)
+
+
+def test_cli_check_env_outputs_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    upstream_root = tmp_path / "sam-3d-body"
+    (upstream_root / "sam_3d_body").mkdir(parents=True)
+    weights = tmp_path / "model.ckpt"
+    weights.write_text("fake")
+
+    exit_code = main([
+        "check-env",
+        "--upstream-root",
+        str(upstream_root),
+        "--weights",
+        str(weights),
+        "--json",
+    ])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["upstream_root"] == str(upstream_root)
+    assert payload["upstream_exists"] is True
+    assert payload["upstream_package_exists"] is True
+    assert payload["weights_path"] == str(weights)
+    assert payload["weights_exists"] is True
+    assert "torch" in payload["modules"]
+    assert "ready_for_inference" in payload
+
+
+def test_cli_check_env_reports_missing_paths(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    upstream_root = tmp_path / "missing-upstream"
+    weights = tmp_path / "missing.ckpt"
+    mhr = tmp_path / "missing-mhr.pt"
+
+    exit_code = main([
+        "check-env",
+        "--upstream-root",
+        str(upstream_root),
+        "--weights",
+        str(weights),
+        "--mhr-path",
+        str(mhr),
+        "--json",
+    ])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["upstream_exists"] is False
+    assert payload["upstream_package_exists"] is False
+    assert payload["weights_exists"] is False
+    assert payload["mhr_exists"] is False
+    assert payload["ready_for_inference"] is False
