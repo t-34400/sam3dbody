@@ -20,13 +20,35 @@ def test_public_api_imports() -> None:
 def test_model_from_pretrained_preserves_explicit_settings() -> None:
     model = Sam3DBodyModel.from_pretrained(
         weights_path="weights/model.pt",
+        mhr_path="assets/mhr_model.pt",
         device="cpu",
         config={"threshold": 0.5},
     )
 
     assert model.weights_path == Path("weights/model.pt")
+    assert model.mhr_path == Path("assets/mhr_model.pt")
     assert model.device == "cpu"
     assert model.config == {"threshold": 0.5}
+
+
+def test_model_from_pretrained_keeps_config_mhr_path_compatibility() -> None:
+    model = Sam3DBodyModel.from_pretrained(
+        weights_path="weights/model.pt",
+        device="cpu",
+        config={"mhr_path": "assets/mhr_model.pt"},
+    )
+
+    assert model.mhr_path == Path("assets/mhr_model.pt")
+    assert model.config == {"mhr_path": "assets/mhr_model.pt"}
+
+
+def test_model_from_pretrained_rejects_conflicting_mhr_paths() -> None:
+    with pytest.raises(ValueError, match="mhr_path conflicts"):
+        Sam3DBodyModel.from_pretrained(
+            weights_path="weights/model.pt",
+            mhr_path="assets/a.pt",
+            config={"mhr_path": "assets/b.pt"},
+        )
 
 
 def test_result_to_dict_uses_wrapper_owned_schema() -> None:

@@ -51,7 +51,6 @@ def run_smoke_test(config: Sam3DBodySmokeTestConfig) -> dict[str, Any]:
         report["message"] = "environment is not ready for real upstream inference"
         return report
 
-    model_config = {"mhr_path": config.mhr_path} if config.mhr_path is not None else None
     adapter = (
         Sam3DBodyUpstreamAdapter.from_repository_root(config.upstream_root)
         if config.upstream_root is not None
@@ -60,8 +59,8 @@ def run_smoke_test(config: Sam3DBodySmokeTestConfig) -> dict[str, Any]:
     try:
         model = Sam3DBodyModel(
             weights_path=config.weights_path,
+            mhr_path=config.mhr_path,
             device=config.device,
-            config=model_config,
             adapter=adapter,
         )
         session = model.load()

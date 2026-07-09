@@ -399,13 +399,10 @@ def _run_install_upstream(args: argparse.Namespace) -> int:
 
 
 def _run_infer(args: argparse.Namespace) -> int:
-    config = {}
-    if args.mhr_path is not None:
-        config["mhr_path"] = args.mhr_path
     model = Sam3DBodyModel.from_pretrained(
         args.weights,
+        mhr_path=args.mhr_path,
         device=args.device,
-        config=config or None,
     )
     session = model.load()
     result = session.predict(

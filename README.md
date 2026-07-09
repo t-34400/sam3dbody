@@ -52,8 +52,8 @@ from sam3dbody import Sam3DBodyModel
 
 model = Sam3DBodyModel.from_pretrained(
     weights_path="/path/to/model.ckpt",
+    mhr_path="/path/to/assets/mhr_model.pt",
     device="cuda",
-    config={"mhr_path": "/path/to/assets/mhr_model.pt"},
 )
 ```
 

@@ -17,6 +17,7 @@ class Sam3DBodyModel:
     """Wrapper-owned model configuration handle."""
 
     weights_path: Path | None = None
+    mhr_path: Path | None = None
     device: str | None = None
     config: dict[str, Any] | None = None
     adapter: Sam3DBodyUpstreamAdapter | None = None
@@ -26,14 +27,17 @@ class Sam3DBodyModel:
         cls,
         weights_path: str | Path | None = None,
         *,
+        mhr_path: str | Path | None = None,
         device: str | None = None,
         config: dict[str, Any] | None = None,
     ) -> "Sam3DBodyModel":
         """Create a wrapper model configuration from explicit settings."""
         resolved_weights = Path(weights_path) if weights_path is not None else None
         copied_config = dict(config) if config is not None else None
+        resolved_mhr_path = _resolve_mhr_path(mhr_path, copied_config)
         return cls(
             weights_path=resolved_weights,
+            mhr_path=resolved_mhr_path,
             device=device,
             config=copied_config,
             adapter=Sam3DBodyUpstreamAdapter.from_source_tree(),
@@ -47,7 +51,7 @@ class Sam3DBodyModel:
         load_config = Sam3DBodyLoadConfig.from_values(
             self.weights_path,
             device=self.device,
-            mhr_path=self.config.get("mhr_path") if self.config else None,
+            mhr_path=self.mhr_path,
             extra=self.config,
         )
         loaded_model = adapter.load(load_config)
@@ -102,3 +106,19 @@ class Sam3DBodyModel:
             use_mask=use_mask,
             inference_type=inference_type,
         )
+
+
+def _resolve_mhr_path(
+    mhr_path: str | Path | None,
+    config: dict[str, Any] | None,
+) -> Path | None:
+    """Resolve canonical MHR path while preserving config compatibility."""
+    config_mhr = config.get("mhr_path") if config is not None else None
+    if mhr_path is None and config_mhr is None:
+        return None
+    if mhr_path is None:
+        return Path(config_mhr)
+    resolved = Path(mhr_path)
+    if config_mhr is not None and Path(config_mhr) != resolved:
+        raise ValueError("mhr_path conflicts with config['mhr_path']")
+    return resolved

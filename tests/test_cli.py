@@ -63,8 +63,16 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
             return FakeResult()
 
     class FakeModel:
-        def __init__(self, weights_arg: Path, *, device: str, config: dict[str, object] | None) -> None:
+        def __init__(
+            self,
+            weights_arg: Path,
+            *,
+            mhr_path: Path | None,
+            device: str,
+            config: dict[str, object] | None,
+        ) -> None:
             calls["weights"] = weights_arg
+            calls["mhr_path"] = mhr_path
             calls["device"] = device
             calls["config"] = config
 
@@ -75,10 +83,11 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
     def fake_from_pretrained(
         weights_arg: Path,
         *,
+        mhr_path: Path | None = None,
         device: str | None = None,
         config: dict[str, object] | None = None,
     ) -> FakeModel:
-        return FakeModel(weights_arg, device=device or "", config=config)
+        return FakeModel(weights_arg, mhr_path=mhr_path, device=device or "", config=config)
 
     monkeypatch.setattr("sam3dbody.cli.Sam3DBodyModel.from_pretrained", fake_from_pretrained)
 
@@ -106,8 +115,9 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
     payload = json.loads(output.read_text())
     assert exit_code == 0
     assert calls["weights"] == weights
+    assert calls["mhr_path"] == tmp_path / "mhr.ckpt"
     assert calls["device"] == "cuda"
-    assert calls["config"] == {"mhr_path": tmp_path / "mhr.ckpt"}
+    assert calls["config"] is None
     assert calls["image"] == image
     assert calls["predict_kwargs"] == {
         "bboxes": [[1, 2, 3, 4]],

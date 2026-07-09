@@ -40,11 +40,15 @@ The model object is responsible for:
 Model construction should make the following choices explicit:
 
 * model weights location
+* MHR asset location when required
 * execution device
 * optional configuration values
 * cache or temporary directory behavior, if needed
 
 Implicit global setup should be avoided when practical.
+`Sam3DBodyModel.from_pretrained(...)` must expose frequently required runtime assets as explicit keyword arguments. The MHR asset path is part of the public construction surface and should be accepted as `mhr_path=...`, not only through generic configuration.
+
+For compatibility, `config["mhr_path"]` may remain accepted as a fallback. Supplying both `mhr_path` and `config["mhr_path"]` with different values must fail explicitly because the runtime asset selection would otherwise be ambiguous.
 
 Model construction may create a wrapper-owned handle without immediately loading upstream weights. Loading upstream weights should be explicit and may be exposed through `load()` before prediction is implemented.
 

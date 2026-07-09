@@ -112,7 +112,7 @@ When `--output` is provided, the command writes JSON to that path and creates mi
 The command accepts:
 
 * `--device`, defaulting to `cuda`
-* `--mhr-path`, forwarded as `config["mhr_path"]`
+* `--mhr-path`, forwarded as the public `mhr_path` argument
 * `--bboxes-json`, a JSON file containing either `[[x1, y1, x2, y2], ...]` or `{"bboxes": [[...], ...]}`
 * `--masks-json`, a JSON file containing either mask data shaped like `N x H x W` or `{"masks": ...}`
 * `--cam-int-json`, a JSON file containing either a `3 x 3` camera intrinsics matrix or `{"cam_int": [[...], ...]}`

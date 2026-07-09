@@ -23,7 +23,7 @@ The public API should:
 * provide a small entry point for model loading
 * provide a simple inference entry point
 * return structured wrapper-owned result objects
-* make device, weight, and configuration choices explicit
+* make device, weight, MHR asset, and configuration choices explicit
 * hide upstream demo script internals
 * avoid leaking raw third-party implementation objects by default
 
@@ -34,7 +34,10 @@ The initial API should converge toward this usage pattern:
 ```python
 from sam3dbody import Sam3DBodyModel
 
-model = Sam3DBodyModel.from_pretrained(weights_path="...")
+model = Sam3DBodyModel.from_pretrained(
+    weights_path="...",
+    mhr_path="...",
+)
 result = model.predict(image)
 ```
 
