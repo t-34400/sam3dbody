@@ -16,6 +16,9 @@ dependencies = [
     "rich",
     "hydra-core",
     "huggingface_hub",
+    "braceexpand",
+    "roma",
+    "termcolor",
 ]
 
 
@@ -28,6 +31,9 @@ inference = [
     "scikit-image",
     "einops",
     "timm",
+    "braceexpand",
+    "roma",
+    "termcolor",
     "dill",
     "pandas",
     "rich",
@@ -51,6 +57,9 @@ inference = [
     "pycocotools",
     "tensorboard",
     "huggingface_hub",
+    "braceexpand",
+    "roma",
+    "termcolor",
 ]
 
 [build-system]

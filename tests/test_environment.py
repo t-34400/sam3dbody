@@ -66,3 +66,12 @@ def test_check_environment_default_upstream_root_can_be_monkeypatched(monkeypatc
     report = environment.check_environment(modules=())
 
     assert report.upstream_root == tmp_path / ".local" / "upstream" / "sam-3d-body"
+
+
+def test_default_environment_modules_include_real_smoke_import_findings() -> None:
+    from sam3dbody.environment import DEFAULT_INFERENCE_MODULES
+
+    assert "braceexpand" in DEFAULT_INFERENCE_MODULES
+    assert "roma" in DEFAULT_INFERENCE_MODULES
+    assert "pytorch_lightning" in DEFAULT_INFERENCE_MODULES
+    assert "termcolor" in DEFAULT_INFERENCE_MODULES

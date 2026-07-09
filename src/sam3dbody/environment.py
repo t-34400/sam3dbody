@@ -22,6 +22,10 @@ DEFAULT_INFERENCE_MODULES = (
     "rich",
     "hydra",
     "huggingface_hub",
+    "braceexpand",
+    "roma",
+    "pytorch_lightning",
+    "termcolor",
 )
 
 

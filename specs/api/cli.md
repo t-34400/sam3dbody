@@ -44,6 +44,7 @@ The command checks at least:
 * whether an explicitly supplied `--weights` path exists;
 * whether an explicitly supplied `--mhr-path` exists;
 * whether representative inference dependency modules are importable;
+  The representative module list includes ordinary PyPI prerequisites and real-inference prerequisites observed during upstream import, including `braceexpand`, `roma`, `pytorch_lightning`, and `termcolor`.
 * whether CUDA appears available through torch when torch is importable.
 
 When `--upstream-root` is omitted, the command uses the wrapper default upstream source location. In a source checkout, this is `third_party/sam-3d-body`. In an installed wheel or Git URL installation, this is `.local/upstream/sam-3d-body` relative to the current working directory. The default must not resolve inside `site-packages` or a virtual environment.

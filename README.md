@@ -10,9 +10,9 @@ There are three separate layers:
 
 1. **Wrapper package**: this repository and its lightweight CLI/API.
 2. **Upstream source**: the original SAM 3D Body repository, prepared explicitly with `sam3dbody install-upstream`.
-3. **Real inference environment**: CUDA, Torch, timm, Detectron2, SAM3, checkpoints, and optional assets.
+3. **Real inference environment**: CUDA, Torch, timm, PyTorch Lightning, Detectron2, SAM3, checkpoints, and optional assets.
 
-The base package intentionally does not install Torch, torchvision, timm, Detectron2, SAM3, checkpoints, or MHR assets. Those pieces are environment-specific and should be installed explicitly for the target machine.
+The base package intentionally does not install Torch, torchvision, timm, PyTorch Lightning, Detectron2, SAM3, checkpoints, or MHR assets. Those pieces are environment-specific and should be installed explicitly for the target machine.
 
 ## Install the wrapper
 
@@ -32,7 +32,7 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-The base install includes ordinary PyPI dependencies used by the wrapper diagnostics and the documented setup flow, such as OpenCV, scikit-image, pandas, rich, Hydra, and Hugging Face Hub. It deliberately excludes dependencies that can pull Torch transitively, especially `timm`.
+The base install includes ordinary PyPI dependencies used by the wrapper diagnostics and the documented setup flow, such as OpenCV, scikit-image, pandas, rich, Hydra, Hugging Face Hub, braceexpand, roma, and termcolor. It deliberately excludes dependencies that can pull Torch transitively, especially `timm` and `pytorch-lightning`.
 
 ## Prepare upstream source
 
@@ -68,7 +68,7 @@ After a base install and upstream setup, it is normal for `check-env` to still r
 
 ```text
 weights path was not provided
-missing importable modules: torch, timm
+missing importable modules: torch, timm, pytorch_lightning
 CUDA is not available through torch
 ```
 
@@ -84,15 +84,15 @@ sam3dbody check-env --weights /path/to/checkpoint.ckpt --strict
 
 Install Torch explicitly for your CUDA / driver / platform combination. For example, choose the correct command from the official PyTorch selector before continuing.
 
-After Torch is installed, install remaining real-inference packages that depend on it, such as `timm`, plus upstream-specific packages such as Detectron2 and SAM3 following the upstream instructions.
+After Torch is installed, install remaining real-inference packages that depend on it, such as `timm` and `pytorch-lightning`, plus upstream-specific packages such as Detectron2 and SAM3 following the upstream instructions.
 
 A minimal next step after selecting Torch is typically:
 
 ```bash
-uv pip install timm
+uv pip install timm pytorch-lightning
 ```
 
-Then re-check:
+The base wrapper install already includes ordinary upstream-import dependencies observed during real smoke testing, including `braceexpand`, `roma`, and `termcolor`. Then re-check:
 
 ```bash
 sam3dbody check-env --weights /path/to/checkpoint.ckpt

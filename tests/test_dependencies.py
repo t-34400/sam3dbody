@@ -63,10 +63,14 @@ def test_base_dependencies_include_ordinary_pypi_runtime_prerequisites() -> None
     assert "scikit-image" in base_dependencies
     assert "einops" in base_dependencies
     assert "timm" not in base_dependencies
+    assert "pytorch-lightning" not in base_dependencies
     assert "pandas" in base_dependencies
     assert "rich" in base_dependencies
     assert "hydra-core" in base_dependencies
     assert "huggingface_hub" in base_dependencies
+    assert "braceexpand" in base_dependencies
+    assert "roma" in base_dependencies
+    assert "termcolor" in base_dependencies
 
 
 def test_inference_extra_is_declared_for_upstream_dependencies() -> None:
@@ -76,6 +80,10 @@ def test_inference_extra_is_declared_for_upstream_dependencies() -> None:
     assert "opencv-python" in inference
     assert "huggingface_hub" in inference
     assert "networkx==3.2.1" in inference
+    assert "braceexpand" in inference
+    assert "roma" in inference
+    assert "termcolor" in inference
+    assert "pytorch-lightning" in inference
 
 
 def test_platform_specific_upstream_dependencies_are_not_base_requirements() -> None:
@@ -86,6 +94,7 @@ def test_platform_specific_upstream_dependencies_are_not_base_requirements() -> 
     assert "torch" not in base_dependencies
     assert "torchvision" not in base_dependencies
     assert "timm" not in base_dependencies
+    assert "pytorch-lightning" not in base_dependencies
     assert "detectron2" not in base_dependencies
     assert "detectron2" not in inference
     assert not any("git+https://github.com/facebookresearch/sam3" in dep for dep in inference)

@@ -33,9 +33,12 @@ pandas
 rich
 hydra-core
 huggingface_hub
+braceexpand
+roma
+termcolor
 ```
 
-These base dependencies do not make the environment inference-ready by themselves. They only remove ordinary PyPI dependency setup from the manual post-install checklist when those dependencies do not pull PyTorch transitively. Packages such as `timm` are real-inference prerequisites but are excluded from base dependencies because they depend on PyTorch and can cause packaging tools to select an environment-inappropriate Torch build.
+These base dependencies do not make the environment inference-ready by themselves. They only remove ordinary PyPI dependency setup from the manual post-install checklist when those dependencies do not pull PyTorch transitively. Packages such as `timm` and `pytorch-lightning` are real-inference prerequisites but are excluded from base dependencies because they depend on PyTorch and can cause packaging tools to select an environment-inappropriate Torch build.
 
 ## Upstream Dependency Policy
 
@@ -81,6 +84,8 @@ The `inference` extra is allowed to be incomplete with respect to non-PyPI or pl
 
 * PyTorch installation remains user/environment specific and should follow the official PyTorch installation selector.
 * `timm` remains outside the base dependencies because it depends on PyTorch and may cause package managers to install an unintended Torch build. Install it as part of the explicit real-inference environment after selecting a Torch build.
+* `pytorch-lightning` remains outside the base dependencies because it depends on PyTorch and should be installed after the user selects a Torch build.
+* `braceexpand`, `roma`, and `termcolor` are ordinary PyPI packages observed during real upstream model import and are included in the base dependency list.
 * Detectron2 remains outside the `inference` extra because upstream currently requires a pinned Git installation with custom installer flags.
 * MoGe remains outside the `inference` extra because upstream marks it optional.
 * SAM3 remains outside the `inference` extra because upstream requires cloning and editable installation of a separate repository.
