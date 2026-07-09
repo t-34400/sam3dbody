@@ -86,3 +86,25 @@ results = session.predict_many([
 ```
 
 `predict_many()` currently performs ordered repeated single-image inference. It is not yet optimized tensor batching.
+
+## Real inference smoke test
+
+After preparing upstream source, dependencies, CUDA, weights, and a sample image, run an explicit smoke test:
+
+```bash
+sam3dbody smoke-test image.png \
+  --weights /path/to/checkpoint.ckpt \
+  --repeat 2 \
+  --output smoke-report.json
+```
+
+The smoke report records environment readiness, body counts, output keys, and shape/dtype summaries. It avoids embedding full tensors or arrays.
+
+The pytest real-inference smoke test is skipped by default. To run it explicitly, provide real paths:
+
+```bash
+SAM3DBODY_RUN_REAL_SMOKE=1 \
+SAM3DBODY_SMOKE_IMAGE=/path/to/image.png \
+SAM3DBODY_SMOKE_WEIGHTS=/path/to/checkpoint.ckpt \
+PYTHONPATH=src:. pytest -q tests/test_real_inference_smoke.py
+```

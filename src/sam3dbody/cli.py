@@ -10,6 +10,7 @@ from typing import Any, Sequence
 from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
 from sam3dbody.environment import check_environment
 from sam3dbody.model import Sam3DBodyModel
+from sam3dbody.smoke import Sam3DBodySmokeTestConfig, run_smoke_test
 from sam3dbody.upstream_setup import install_upstream_source, plan_upstream_setup
 
 
@@ -201,6 +202,56 @@ def build_parser() -> argparse.ArgumentParser:
         help="upstream inference mode",
     )
 
+    smoke = subcommands.add_parser(
+        "smoke-test",
+        help="run an explicitly requested real-inference smoke test",
+    )
+    smoke.add_argument(
+        "image",
+        type=Path,
+        help="path to an input image for the smoke test",
+    )
+    smoke.add_argument(
+        "--weights",
+        type=Path,
+        required=True,
+        help="path to the upstream SAM 3D Body checkpoint",
+    )
+    smoke.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="path to write the smoke test JSON report; stdout is used when omitted",
+    )
+    smoke.add_argument(
+        "--device",
+        default="cuda",
+        help="device passed to the upstream loader; real prediction currently requires CUDA",
+    )
+    smoke.add_argument(
+        "--mhr-path",
+        type=Path,
+        default=None,
+        help="optional path to the upstream MHR model checkpoint",
+    )
+    smoke.add_argument(
+        "--upstream-root",
+        type=Path,
+        default=None,
+        help="optional upstream sam-3d-body source tree for the smoke test",
+    )
+    smoke.add_argument(
+        "--repeat",
+        type=int,
+        default=0,
+        help="also run predict_many with this many repeated copies of IMAGE",
+    )
+    smoke.add_argument(
+        "--skip-env-check",
+        action="store_true",
+        help="attempt inference even when check-env reports missing prerequisites",
+    )
+
     return parser
 
 
@@ -223,6 +274,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "infer":
         return _run_infer(args)
+
+    if args.command == "smoke-test":
+        return _run_smoke_test(args)
 
     parser.print_help()
     return 0
@@ -421,3 +475,26 @@ def _json_safe(value: object) -> object:
     if callable(item):
         return _json_safe(item())
     return repr(value)
+
+
+def _run_smoke_test(args: argparse.Namespace) -> int:
+    if args.repeat < 0:
+        raise ValueError("--repeat must be greater than or equal to 0")
+    report = run_smoke_test(
+        Sam3DBodySmokeTestConfig(
+            image=args.image,
+            weights_path=args.weights,
+            device=args.device,
+            mhr_path=args.mhr_path,
+            upstream_root=args.upstream_root,
+            repeat=args.repeat,
+            skip_env_check=args.skip_env_check,
+        )
+    )
+    payload = json.dumps(_json_safe(report), indent=2, sort_keys=True)
+    if args.output is None:
+        print(payload)
+    else:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(payload + "\n")
+    return 0 if report.get("success") is True else 1

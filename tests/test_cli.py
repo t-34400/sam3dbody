@@ -478,3 +478,54 @@ def test_cli_install_upstream_returns_one_for_failure(monkeypatch: pytest.Monkey
     assert exit_code == 1
     assert "success: False" in out
     assert "commands_run: none" in out
+
+
+def test_cli_smoke_test_writes_json_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    image = tmp_path / "image.png"
+    weights = tmp_path / "model.ckpt"
+    output = tmp_path / "smoke" / "report.json"
+    upstream_root = tmp_path / "sam-3d-body"
+    image.write_bytes(b"fake")
+    weights.write_text("fake")
+    upstream_root.mkdir()
+    calls: dict[str, object] = {}
+
+    def fake_run_smoke_test(config: object) -> dict[str, object]:
+        calls["config"] = config
+        return {"success": True, "single": {"body_count": 0}, "batch": None}
+
+    monkeypatch.setattr("sam3dbody.cli.run_smoke_test", fake_run_smoke_test)
+
+    exit_code = main([
+        "smoke-test",
+        str(image),
+        "--weights",
+        str(weights),
+        "--upstream-root",
+        str(upstream_root),
+        "--repeat",
+        "2",
+        "--skip-env-check",
+        "--output",
+        str(output),
+    ])
+
+    payload = json.loads(output.read_text())
+    config = calls["config"]
+    assert exit_code == 0
+    assert payload["success"] is True
+    assert getattr(config, "image") == image
+    assert getattr(config, "weights_path") == weights
+    assert getattr(config, "upstream_root") == upstream_root
+    assert getattr(config, "repeat") == 2
+    assert getattr(config, "skip_env_check") is True
+
+
+def test_cli_smoke_test_rejects_negative_repeat(tmp_path: Path) -> None:
+    image = tmp_path / "image.png"
+    weights = tmp_path / "model.ckpt"
+    image.write_bytes(b"fake")
+    weights.write_text("fake")
+
+    with pytest.raises(ValueError, match="--repeat"):
+        main(["smoke-test", str(image), "--weights", str(weights), "--repeat", "-1"])

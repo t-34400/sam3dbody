@@ -39,3 +39,24 @@ Preferred test modules include:
 * `test_packaging.py` for source archive and generated artifact rules
 
 Avoid accumulating unrelated test responsibilities in a single large test file.
+
+## Real Inference Smoke Tests
+
+Real upstream inference tests must be opt-in and skipped by default.
+
+A real inference smoke test may require:
+
+* upstream SAM 3D Body source code;
+* checkpoint weights;
+* optional MHR assets;
+* CUDA-capable PyTorch;
+* upstream inference dependencies;
+* at least one sample image.
+
+Such tests must not run as part of the default lightweight test set. They should be guarded by an explicit environment variable such as:
+
+```text
+SAM3DBODY_RUN_REAL_SMOKE=1
+```
+
+Required runtime paths should also be supplied explicitly through environment variables or CLI arguments. Real inference smoke tests should validate coarse integration facts such as command success, result count, output key presence, shape, dtype, and batch path execution. They must not assert model accuracy, exact numeric predictions, or dataset-specific quality unless a separate benchmark specification defines those requirements.

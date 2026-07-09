@@ -143,14 +143,38 @@ Real upstream prediction currently requires CUDA for the same reason documented 
 
 The JSON output must be derived from `Sam3DBodyResult.to_dict()`. Values that are not directly JSON serializable, such as tensors or arrays, may be converted to lists when supported or represented using a deterministic string fallback.
 
+## Real Inference Smoke Test Command
+
+```text
+sam3dbody smoke-test IMAGE --weights PATH [--output PATH] [--device DEVICE] [--mhr-path PATH] [--upstream-root PATH] [--repeat N] [--skip-env-check]
+```
+
+`smoke-test` is an explicitly requested real-inference validation command. It is intended for local or CI environments that have upstream source code, model weights, CUDA, and inference dependencies available.
+
+The command first runs the same non-mutating prerequisite checks as `check-env`. Unless `--skip-env-check` is supplied, the command must not attempt model loading or inference when the environment report is not ready for inference. In that case it writes a smoke report with `success: false` and exits with status code `1`.
+
+When prerequisites are ready, or when `--skip-env-check` is supplied, the command loads the wrapper model through the public wrapper API and runs one `session.predict(IMAGE)` call. When `--repeat N` is greater than zero, the command must also run `session.predict_many([IMAGE] * N)` to exercise the ordered repeated-inference path.
+
+The command writes a wrapper-owned JSON report. The report must include:
+
+* a smoke report schema version;
+* input paths and device settings;
+* the environment readiness report;
+* single-image result summary;
+* optional repeated batch result summary;
+* success flag and message.
+
+Result summaries must avoid embedding full tensors or arrays. They should record body counts, metadata, field presence, field type, shape, dtype when available, bbox values, and extra output keys. This command is a diagnostic aid and does not define stable model accuracy expectations.
+
+`--repeat` must be greater than or equal to zero. The command exits with status code `0` only when the smoke test completes successfully.
+
+
 ## Future Commands
 
 Future CLI commands may include:
 
-* mutating upstream setup
 * checkpoint download
-* batch inference
 * output conversion
-* diagnostics
+* additional diagnostics
 
 Future command behavior must be specified before being treated as stable.
