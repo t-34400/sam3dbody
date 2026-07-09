@@ -32,6 +32,8 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
     weights = tmp_path / "model.ckpt"
     weights.write_bytes(b"checkpoint")
     output = tmp_path / "nested" / "result.json"
+    bboxes_json = tmp_path / "bboxes.json"
+    bboxes_json.write_text(json.dumps({"bboxes": [[1, 2, 3, 4]]}))
     calls: dict[str, object] = {}
 
     class FakeResult:
@@ -90,6 +92,8 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
             str(output),
             "--mhr-path",
             str(tmp_path / "mhr.ckpt"),
+            "--bboxes-json",
+            str(bboxes_json),
             "--bbox-thr",
             "0.7",
             "--nms-thr",
@@ -106,6 +110,8 @@ def test_cli_infer_writes_json_output(tmp_path: Path, monkeypatch: pytest.Monkey
     assert calls["config"] == {"mhr_path": tmp_path / "mhr.ckpt"}
     assert calls["image"] == image
     assert calls["predict_kwargs"] == {
+        "bboxes": [[1, 2, 3, 4]],
+        "cam_int": None,
         "bbox_thr": 0.7,
         "nms_thr": 0.2,
         "inference_type": "body",
@@ -142,3 +148,64 @@ def test_cli_infer_prints_json_to_stdout(tmp_path: Path, monkeypatch: pytest.Mon
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload == {"bodies": [], "metadata": {"device": "cuda", "extra": {}}}
+
+
+def test_cli_infer_loads_cam_int_json_as_torch_tensor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    image = tmp_path / "image.png"
+    image.write_bytes(b"not a real image")
+    weights = tmp_path / "model.ckpt"
+    weights.write_bytes(b"checkpoint")
+    cam_int_json = tmp_path / "cam_int.json"
+    cam_int_json.write_text(json.dumps({"cam_int": [[1, 0, 2], [0, 1, 3], [0, 0, 1]]}))
+    calls: dict[str, object] = {}
+
+    class FakeTensor:
+        def __init__(self, values: object, dtype: object) -> None:
+            self.values = values
+            self.dtype = dtype
+
+        def tolist(self) -> object:
+            return self.values
+
+    class FakeTorch:
+        float32 = "float32"
+
+        @staticmethod
+        def as_tensor(values: object, *, dtype: object) -> FakeTensor:
+            return FakeTensor(values, dtype)
+
+    class FakeResult:
+        def to_dict(self) -> dict[str, object]:
+            return {"bodies": [], "metadata": {}}
+
+    class FakeSession:
+        def predict(self, image_arg: Path, **kwargs: object) -> FakeResult:
+            calls.update(kwargs)
+            return FakeResult()
+
+    class FakeModel:
+        def load(self) -> FakeSession:
+            return FakeSession()
+
+    monkeypatch.setitem(__import__("sys").modules, "torch", FakeTorch)
+    monkeypatch.setattr(
+        "sam3dbody.cli.Sam3DBodyModel.from_pretrained",
+        lambda *args, **kwargs: FakeModel(),
+    )
+
+    exit_code = main(["infer", str(image), "--weights", str(weights), "--cam-int-json", str(cam_int_json)])
+
+    assert exit_code == 0
+    assert isinstance(calls["cam_int"], FakeTensor)
+    assert calls["cam_int"].tolist() == [[1, 0, 2], [0, 1, 3], [0, 0, 1]]
+    assert calls["cam_int"].dtype == "float32"
+
+
+def test_cli_infer_rejects_bboxes_json_object_without_bboxes_key(tmp_path: Path) -> None:
+    from sam3dbody.cli import _load_bboxes_json
+
+    bboxes_json = tmp_path / "bboxes.json"
+    bboxes_json.write_text(json.dumps({"boxes": []}))
+
+    with pytest.raises(ValueError, match="bboxes"):
+        _load_bboxes_json(bboxes_json)

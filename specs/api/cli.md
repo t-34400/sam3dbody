@@ -35,7 +35,7 @@ Without `--json`, the command prints a human-readable summary.
 ## Single Image Inference Command
 
 ```text
-sam3dbody infer IMAGE --weights PATH [--output PATH] [--device DEVICE] [--mhr-path PATH]
+sam3dbody infer IMAGE --weights PATH [--output PATH] [--device DEVICE] [--mhr-path PATH] [--bboxes-json PATH] [--cam-int-json PATH]
 ```
 
 `infer` runs single-image inference through the public wrapper API and writes a wrapper-owned JSON result.
@@ -50,11 +50,17 @@ The command accepts:
 
 * `--device`, defaulting to `cuda`
 * `--mhr-path`, forwarded as `config["mhr_path"]`
+* `--bboxes-json`, a JSON file containing either `[[x1, y1, x2, y2], ...]` or `{"bboxes": [[...], ...]}`
+* `--cam-int-json`, a JSON file containing either a `3 x 3` camera intrinsics matrix or `{"cam_int": [[...], ...]}`
 * `--bbox-thr`, defaulting to `0.5`
 * `--nms-thr`, defaulting to `0.3`
 * `--inference-type`, one of `full`, `body`, or `hand`
 
 Real upstream prediction currently requires CUDA for the same reason documented in [inference_pipeline.md](inference_pipeline.md).
+
+`--bboxes-json` is forwarded to `session.predict(..., bboxes=...)` after JSON parsing. The wrapper does not reinterpret coordinate systems at the CLI boundary; values must already follow the public prediction input contract.
+
+`--cam-int-json` is converted to a `torch.float32` tensor before prediction because upstream expects `cam_int` to provide tensor methods such as `.to(...)` and `.clone()`. The option therefore requires the inference dependency stack to make `torch` importable.
 
 The JSON output must be derived from `Sam3DBodyResult.to_dict()`. Values that are not directly JSON serializable, such as tensors or arrays, may be converted to lists when supported or represented using a deterministic string fallback.
 

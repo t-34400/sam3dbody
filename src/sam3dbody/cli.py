@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
 from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
 from sam3dbody.model import Sam3DBodyModel
@@ -63,6 +63,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help="optional path to the upstream MHR model checkpoint",
+    )
+    infer.add_argument(
+        "--bboxes-json",
+        type=Path,
+        default=None,
+        help="optional JSON file containing bboxes as [[x1, y1, x2, y2], ...] or {'bboxes': ...}",
+    )
+    infer.add_argument(
+        "--cam-int-json",
+        type=Path,
+        default=None,
+        help="optional JSON file containing a 3x3 camera intrinsics matrix or {'cam_int': ...}",
     )
     infer.add_argument(
         "--bbox-thr",
@@ -130,6 +142,8 @@ def _run_infer(args: argparse.Namespace) -> int:
     session = model.load()
     result = session.predict(
         args.image,
+        bboxes=_load_bboxes_json(args.bboxes_json),
+        cam_int=_load_cam_int_json(args.cam_int_json),
         bbox_thr=args.bbox_thr,
         nms_thr=args.nms_thr,
         inference_type=args.inference_type,
@@ -141,6 +155,36 @@ def _run_infer(args: argparse.Namespace) -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(payload + "\n")
     return 0
+
+
+def _load_bboxes_json(path: Path | None) -> Any | None:
+    if path is None:
+        return None
+    payload = _read_json_file(path)
+    if isinstance(payload, dict):
+        if "bboxes" not in payload:
+            raise ValueError(f"bboxes JSON object must contain a 'bboxes' key: {path}")
+        return payload["bboxes"]
+    return payload
+
+
+def _load_cam_int_json(path: Path | None) -> Any | None:
+    if path is None:
+        return None
+    payload = _read_json_file(path)
+    if isinstance(payload, dict):
+        if "cam_int" not in payload:
+            raise ValueError(f"cam_int JSON object must contain a 'cam_int' key: {path}")
+        payload = payload["cam_int"]
+    try:
+        import torch  # type: ignore[import-not-found]
+    except ImportError as exc:
+        raise RuntimeError("--cam-int-json requires torch so the matrix can be passed to upstream as a tensor-like object.") from exc
+    return torch.as_tensor(payload, dtype=torch.float32)
+
+
+def _read_json_file(path: Path) -> Any:
+    return json.loads(path.read_text())
 
 
 def _json_safe(value: object) -> object:
