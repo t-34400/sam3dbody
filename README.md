@@ -44,12 +44,39 @@ sam3dbody smoke-test image.png \
 
 ## Python API
 
+Use `Sam3DBodyModel.from_pretrained()` to create a wrapper model handle from explicit runtime inputs.
+
 ```python
 from sam3dbody import Sam3DBodyModel
 
-model = Sam3DBodyModel(...)
-result = model.predict(image)
+model = Sam3DBodyModel.from_pretrained(
+    weights_path="/path/to/model.ckpt",
+    device="cuda",
+    config={"mhr_path": "/path/to/assets/mhr_model.pt"},
+)
+
+result = model.predict("image.png")
+print(result.to_dict())
 ```
+
+For repeated inference, load a persistent session once and reuse it. This avoids reloading upstream weights for every image.
+
+```python
+session = model.load()
+
+result = session.predict("image.png")
+results = session.predict_many(["image1.png", "image2.png"])
+```
+
+`predict_many()` is ordered repeated single-image inference, not optimized tensor batching. It returns one `Sam3DBodyResult` per input image in the same order.
+
+Public result objects are wrapper-owned:
+
+- `Sam3DBodyResult`
+- `Sam3DBodyPrediction`
+- `Sam3DBodyMetadata`
+
+`Sam3DBodyResult.to_dict()` returns a serializable wrapper result with `bodies` and `metadata`.
 
 ## License and upstream terms
 
