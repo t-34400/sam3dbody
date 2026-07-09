@@ -44,12 +44,12 @@ uv pip install torch torchvision --index-url <TORCH_INDEX_URL>
 uv pip install timm pytorch-lightning
 
 sam3dbody check-env \
-  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
-  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt
+  --weights /path/to/model.ckpt \
+  --mhr-path /path/to/assets/mhr_model.pt
 
 sam3dbody smoke-test /path/to/image.png \
-  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
-  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
+  --weights /path/to/model.ckpt \
+  --mhr-path /path/to/assets/mhr_model.pt \
   --repeat 3 \
   --output smoke-report.json
 ```
@@ -121,18 +121,11 @@ https://huggingface.co/facebook/sam-3d-body-dinov3/tree/main
 Use the upstream file layout expected by the wrapper examples:
 
 ```text
-.local/models/
-└── sam-3d-body-dinov3/
-    ├── model.ckpt
-    └── assets/
-        └── mhr_model.pt
-```
-
 The corresponding command paths are:
 
 ```text
---weights .local/models/sam-3d-body-dinov3/model.ckpt
---mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt
+--weights /path/to/model.ckpt
+--mhr-path /path/to/assets/mhr_model.pt
 ```
 
 The wrapper does not bundle, mirror, or automatically download these files.
@@ -160,8 +153,8 @@ Use strict mode in scripts when missing inference prerequisites should fail the 
 
 ```bash
 sam3dbody check-env \
-  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
-  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
+  --weights /path/to/model.ckpt \
+  --mhr-path /path/to/assets/mhr_model.pt \
   --strict
 ```
 
@@ -181,8 +174,8 @@ Then re-check with real model paths:
 
 ```bash
 sam3dbody check-env \
-  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
-  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt
+  --weights /path/to/model.ckpt \
+  --mhr-path /path/to/assets/mhr_model.pt
 ```
 
 Model checkpoints and MHR assets are not bundled into this wrapper. Provide them explicitly after downloading the official files through approved Hugging Face access.
@@ -205,9 +198,9 @@ Model checkpoints and MHR assets are not bundled into this wrapper. Provide them
 from sam3dbody import Sam3DBodyModel
 
 model = Sam3DBodyModel.from_pretrained(
-    weights_path=".local/models/sam-3d-body-dinov3/model.ckpt",
+    weights_path="/path/to/model.ckpt",
     device="cuda",
-    config={"mhr_path": ".local/models/sam-3d-body-dinov3/assets/mhr_model.pt"},
+    config={"mhr_path": "/path/to/assets/mhr_model.pt"},
 )
 session = model.load()
 result = session.predict("/path/to/image.png")
@@ -229,8 +222,8 @@ results = session.predict_many([
 
 ```bash
 sam3dbody infer image.png \
-  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
-  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
+  --weights /path/to/model.ckpt \
+  --mhr-path /path/to/assets/mhr_model.pt \
   --output result.json
 ```
 
@@ -242,8 +235,8 @@ After preparing upstream source, dependencies, CUDA, weights, MHR assets, and a 
 
 ```bash
 sam3dbody smoke-test image.png \
-  --weights .local/models/sam-3d-body-dinov3/model.ckpt \
-  --mhr-path .local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
+  --weights /path/to/model.ckpt \
+  --mhr-path /path/to/assets/mhr_model.pt \
   --repeat 3 \
   --output smoke-report.json
 ```
@@ -265,8 +258,8 @@ The pytest real-inference smoke test is skipped by default. To run it explicitly
 ```bash
 SAM3DBODY_RUN_REAL_SMOKE=1 \
 SAM3DBODY_SMOKE_IMAGE=/path/to/image.png \
-SAM3DBODY_SMOKE_WEIGHTS=.local/models/sam-3d-body-dinov3/model.ckpt \
-SAM3DBODY_SMOKE_MHR_PATH=.local/models/sam-3d-body-dinov3/assets/mhr_model.pt \
+SAM3DBODY_SMOKE_WEIGHTS=/path/to/model.ckpt \
+SAM3DBODY_SMOKE_MHR_PATH=/path/to/assets/mhr_model.pt \
 PYTHONPATH=src:. pytest -q tests/test_real_inference_smoke.py
 ```
 
