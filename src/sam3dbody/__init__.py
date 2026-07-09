@@ -3,6 +3,7 @@
 from .exceptions import Sam3DBodyError, Sam3DBodyNotImplementedError
 from .model import Sam3DBodyModel
 from .result import Sam3DBodyMetadata, Sam3DBodyPrediction, Sam3DBodyResult
+from .session import Sam3DBodySession
 
 __all__ = [
     "Sam3DBodyError",
@@ -11,4 +12,5 @@ __all__ = [
     "Sam3DBodyNotImplementedError",
     "Sam3DBodyPrediction",
     "Sam3DBodyResult",
+    "Sam3DBodySession",
 ]

@@ -91,3 +91,11 @@ The adapter prediction call may forward the following explicitly documented upst
 * `inference_type`
 
 The adapter must keep upstream imports lazy and must not make package import depend on upstream inference dependencies.
+
+## Persistent Session Contract
+
+A persistent wrapper session owns a loaded upstream model handle and may reuse an upstream estimator across repeated calls. The session must not reload checkpoint weights for every `predict()` call.
+
+The public immutable model object represents configuration. It may construct a temporary session for convenience prediction, but the session API is the stable path for repeated inference.
+
+Session prediction uses the same single-image input contract and output conversion rules as the adapter prediction call.

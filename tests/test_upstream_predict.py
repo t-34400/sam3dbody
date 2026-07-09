@@ -92,3 +92,57 @@ def test_predict_options_document_forwarded_kwargs() -> None:
     assert options.to_upstream_kwargs()["bbox_thr"] == 0.7
     assert options.to_upstream_kwargs()["nms_thr"] == 0.2
     assert options.to_upstream_kwargs()["use_mask"] is True
+
+
+def test_public_model_load_returns_reusable_session(tmp_path: Path) -> None:
+    repo = tmp_path / "sam-3d-body"
+    _write_fake_upstream(repo)
+    checkpoint = tmp_path / "model.ckpt"
+    checkpoint.write_text("fake")
+    model = Sam3DBodyModel(
+        weights_path=checkpoint,
+        device="cpu",
+        adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
+    )
+
+    session = model.load()
+    first = session.predict("first.png")
+    second = session.predict("second.png", inference_type="body")
+
+    assert session.device == "cpu"
+    assert first.bodies[0].extra["image_arg"] == "first.png"
+    assert second.bodies[0].extra["image_arg"] == "second.png"
+    assert second.bodies[0].extra["inference_type"] == "body"
+
+
+def test_session_does_not_reload_weights_for_repeated_prediction(tmp_path: Path) -> None:
+    repo = tmp_path / "sam-3d-body"
+    marker = tmp_path / "load_calls.txt"
+    package = repo / "sam_3d_body"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        "from pathlib import Path\n"
+        f"MARKER = Path({str(marker)!r})\n"
+        "def load_sam_3d_body(checkpoint_path, device='cuda', mhr_path=''):\n"
+        "    with MARKER.open('a') as f:\n"
+        "        f.write('load\\n')\n"
+        "    return {'device': device}, {'ok': True}\n"
+        "class SAM3DBodyEstimator:\n"
+        "    def __init__(self, sam_3d_body_model, model_cfg, human_detector=None, human_segmentor=None, fov_estimator=None):\n"
+        "        self.faces = []\n"
+        "    def process_one_image(self, img, **kwargs):\n"
+        "        return [{'bbox': [0, 0, 1, 1], 'image_arg': img}]\n"
+    )
+    checkpoint = tmp_path / "model.ckpt"
+    checkpoint.write_text("fake")
+    model = Sam3DBodyModel(
+        weights_path=checkpoint,
+        device="cpu",
+        adapter=Sam3DBodyUpstreamAdapter.from_repository_root(repo),
+    )
+
+    session = model.load()
+    session.predict("a.png")
+    session.predict("b.png")
+
+    assert marker.read_text().splitlines() == ["load"]

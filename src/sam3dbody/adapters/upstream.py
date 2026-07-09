@@ -89,22 +89,24 @@ class Sam3DBodyUpstreamAdapter:
         loaded_model: Sam3DBodyLoadedModel,
         *,
         options: Sam3DBodyPredictionOptions | None = None,
+        estimator: Any | None = None,
     ) -> Sam3DBodyResult:
         """Run upstream single-image inference and convert to wrapper results."""
         prediction_options = options or Sam3DBodyPredictionOptions()
-        estimator = self._build_estimator(loaded_model)
+        active_estimator = estimator or self.create_estimator(loaded_model)
         upstream_image = str(image) if isinstance(image, Path) else image
-        upstream_outputs = estimator.process_one_image(
+        upstream_outputs = active_estimator.process_one_image(
             upstream_image,
             **prediction_options.to_upstream_kwargs(),
         )
         return _convert_upstream_outputs(
             upstream_outputs,
-            faces=getattr(estimator, "faces", None),
+            faces=getattr(active_estimator, "faces", None),
             loaded_model=loaded_model,
         )
 
-    def _build_estimator(self, loaded_model: Sam3DBodyLoadedModel) -> Any:
+    def create_estimator(self, loaded_model: Sam3DBodyLoadedModel) -> Any:
+        """Create an upstream estimator from an already loaded model handle."""
         with _prepend_sys_path(self.repository.root):
             module = importlib.import_module("sam_3d_body")
             estimator_cls = getattr(module, "SAM3DBodyEstimator")

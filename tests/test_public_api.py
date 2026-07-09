@@ -7,12 +7,14 @@ from sam3dbody import (
     Sam3DBodyModel,
     Sam3DBodyPrediction,
     Sam3DBodyResult,
+    Sam3DBodySession,
 )
 
 
 def test_public_api_imports() -> None:
     assert Sam3DBodyModel.__name__ == "Sam3DBodyModel"
     assert Sam3DBodyResult.__name__ == "Sam3DBodyResult"
+    assert Sam3DBodySession.__name__ == "Sam3DBodySession"
 
 
 def test_model_from_pretrained_preserves_explicit_settings() -> None:
