@@ -5,7 +5,6 @@ import pytest
 from sam3dbody import (
     Sam3DBodyMetadata,
     Sam3DBodyModel,
-    Sam3DBodyNotImplementedError,
     Sam3DBodyPrediction,
     Sam3DBodyResult,
 )
@@ -53,10 +52,10 @@ def test_result_to_dict_uses_wrapper_owned_schema() -> None:
     }
 
 
-def test_predict_reports_missing_inference_adapter() -> None:
+def test_predict_requires_weights_before_upstream_inference() -> None:
     model = Sam3DBodyModel.from_pretrained(device="cpu")
 
-    with pytest.raises(Sam3DBodyNotImplementedError):
+    with pytest.raises(ValueError, match="weights_path is required"):
         model.predict(object())
 
 

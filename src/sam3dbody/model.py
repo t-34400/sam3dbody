@@ -6,18 +6,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .adapters.upstream import Sam3DBodyUpstreamAdapter
 from .adapters.loader import Sam3DBodyLoadConfig, Sam3DBodyLoadedModel
+from .adapters.upstream import Sam3DBodyPredictionOptions, Sam3DBodyUpstreamAdapter
 from .result import Sam3DBodyResult
 
 
 @dataclass(frozen=True)
 class Sam3DBodyModel:
-    """Wrapper-owned model handle.
-
-    This class intentionally does not call the upstream implementation yet.
-    It establishes the public construction and prediction boundary first.
-    """
+    """Wrapper-owned model handle."""
 
     weights_path: Path | None = None
     device: str | None = None
@@ -55,14 +51,28 @@ class Sam3DBodyModel:
         )
         return adapter.load(load_config)
 
-    def predict(self, image: Any) -> Sam3DBodyResult:
-        """Run single-image prediction.
-
-        Actual upstream inference is intentionally not implemented in this
-        initial package skeleton.
-        """
-        if self.adapter is None:
-            adapter = Sam3DBodyUpstreamAdapter.from_source_tree()
-        else:
-            adapter = self.adapter
-        return adapter.predict(image)
+    def predict(
+        self,
+        image: str | Path | Any,
+        *,
+        bboxes: Any | None = None,
+        masks: Any | None = None,
+        cam_int: Any | None = None,
+        bbox_thr: float = 0.5,
+        nms_thr: float = 0.3,
+        use_mask: bool = False,
+        inference_type: str = "full",
+    ) -> Sam3DBodyResult:
+        """Run single-image prediction through the upstream adapter."""
+        adapter = self.adapter or Sam3DBodyUpstreamAdapter.from_source_tree()
+        loaded_model = self.load()
+        options = Sam3DBodyPredictionOptions(
+            bboxes=bboxes,
+            masks=masks,
+            cam_int=cam_int,
+            bbox_thr=bbox_thr,
+            nms_thr=nms_thr,
+            use_mask=use_mask,
+            inference_type=inference_type,
+        )
+        return adapter.predict(image, loaded_model, options=options)

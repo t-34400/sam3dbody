@@ -7,11 +7,12 @@ from .loader import (
     Sam3DBodyUpstreamLoadError,
     Sam3DBodyUpstreamLoader,
 )
-from .upstream import Sam3DBodyUpstreamAdapter, Sam3DBodyUpstreamRepository
+from .upstream import Sam3DBodyPredictionOptions, Sam3DBodyUpstreamAdapter, Sam3DBodyUpstreamRepository
 
 __all__ = [
     "Sam3DBodyLoadConfig",
     "Sam3DBodyLoadedModel",
+    "Sam3DBodyPredictionOptions",
     "Sam3DBodyUpstreamAdapter",
     "Sam3DBodyUpstreamLoadError",
     "Sam3DBodyUpstreamLoader",

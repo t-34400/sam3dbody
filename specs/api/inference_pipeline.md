@@ -56,7 +56,7 @@ The adapter may implement an upstream loader before prediction is implemented. T
 
 The loader must not run image inference. It returns a wrapper-owned load result containing opaque upstream model/config objects and the resolved load settings.
 
-Prediction must remain explicitly not implemented until the upstream call contract and output conversion rules are specified.
+Prediction may be implemented only after the upstream call contract and output conversion rules are specified. The initial prediction adapter may call the upstream `SAM3DBodyEstimator.process_one_image` API after loading the upstream model objects through the wrapper loader.
 
 ## Postprocessing Policy
 
@@ -67,3 +67,27 @@ Postprocessing should avoid silently dropping meaningful upstream data unless th
 ## Diagnostics Policy
 
 Diagnostic outputs may expose additional upstream details when useful, but diagnostic behavior must remain separate from the stable public result format.
+
+## Initial Upstream Prediction Contract
+
+The initial upstream prediction integration uses the current upstream `SAM3DBodyEstimator` class.
+
+The wrapper adapter must construct the estimator behind the adapter boundary from a wrapper-owned loaded model handle. The initial integration supports the core SAM 3D Body model only:
+
+* human detector: unsupported by the wrapper unless explicitly injected by a future adapter;
+* human segmentor: unsupported by the wrapper unless explicitly injected by a future adapter;
+* FOV estimator: unsupported by the wrapper unless explicitly injected by a future adapter.
+
+Without a detector, upstream behavior falls back to full-image inference when no bounding boxes are supplied. Public callers may provide bounding boxes to avoid relying on detector integration.
+
+The adapter prediction call may forward the following explicitly documented upstream options:
+
+* `bboxes`
+* `masks`
+* `cam_int`
+* `bbox_thr`
+* `nms_thr`
+* `use_mask`
+* `inference_type`
+
+The adapter must keep upstream imports lazy and must not make package import depend on upstream inference dependencies.

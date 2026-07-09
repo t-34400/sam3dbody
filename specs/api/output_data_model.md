@@ -84,3 +84,17 @@ Serialization should not require GPU tensors, live model objects, or third-party
 The output model must allow unavailable optional fields to be represented explicitly.
 
 Downstream code must not infer missing fields from undocumented upstream behavior.
+
+## Initial Output Mapping
+
+The initial wrapper-owned conversion maps each upstream body dictionary to `Sam3DBodyPrediction` as follows:
+
+* upstream `bbox` -> `bbox_xyxy` as a four-float tuple;
+* upstream mesh faces from the estimator -> `faces`;
+* upstream `pred_vertices` -> `vertices`;
+* upstream `pred_keypoints_3d` -> `joints`;
+* all other supported upstream fields -> `extra`.
+
+The initial upstream output does not expose a stable confidence score from the core model path, so `score` remains `None` unless a later detector integration specifies score propagation.
+
+The result metadata must include the execution device and may include diagnostic information such as upstream field names. The wrapper must not expose the raw upstream result list as the top-level public result.

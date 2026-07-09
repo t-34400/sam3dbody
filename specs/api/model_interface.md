@@ -89,3 +89,18 @@ Detailed exception classes are not specified yet.
 Until the upstream inference adapter is implemented, the public model object may be constructible without running inference.
 
 Calling prediction before the adapter is available must fail explicitly through a wrapper-owned exception rather than silently returning incomplete results.
+
+## Initial Prediction Input Contract
+
+The first prediction implementation supports single-image inference only.
+
+Accepted image inputs are:
+
+* a filesystem path expressed as `str` or `pathlib.Path`;
+* an in-memory array object accepted by the upstream estimator, intended to be an RGB `H x W x C` image.
+
+When a path is supplied, upstream loads it with OpenCV and interprets it as BGR internally before conversion to RGB. When an array is supplied, upstream expects RGB input.
+
+The initial public method may expose optional keyword arguments that map directly to the wrapper adapter prediction contract. These options are experimental until coordinate and detector integration specifications are stabilized.
+
+The initial implementation does not cache loaded weights inside the immutable public model object. Calling `predict()` may load the upstream model before inference when no loaded handle is supplied internally. A later API may add an explicit persistent loaded-model handle.
