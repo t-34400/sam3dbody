@@ -98,3 +98,26 @@ The initial wrapper-owned conversion maps each upstream body dictionary to `Sam3
 The initial upstream output does not expose a stable confidence score from the core model path, so `score` remains `None` unless a later detector integration specifies score propagation.
 
 The result metadata must include the execution device and may include diagnostic information such as upstream field names. The wrapper must not expose the raw upstream result list as the top-level public result.
+
+## Initial Public Field Semantics
+
+The initial wrapper-owned result schema is versioned as `0.1` in `Sam3DBodyMetadata.extra["output_schema_version"]`.
+
+The initial public field names are:
+
+* `Sam3DBodyResult.bodies`: ordered list of body predictions for one input image;
+* `Sam3DBodyResult.metadata`: wrapper-owned metadata for that input image;
+* `Sam3DBodyPrediction.bbox_xyxy`: four float values when upstream provides `bbox`;
+* `Sam3DBodyPrediction.vertices`: upstream `pred_vertices` value without additional coordinate conversion;
+* `Sam3DBodyPrediction.faces`: mesh topology faces exposed by the upstream estimator;
+* `Sam3DBodyPrediction.joints`: upstream `pred_keypoints_3d` value without additional coordinate conversion;
+* `Sam3DBodyPrediction.extra`: remaining converted upstream body fields.
+
+The wrapper records coordinate labels in `Sam3DBodyMetadata.extra["coordinate_conventions"]`:
+
+* `bbox_xyxy`: `upstream_output_image_xyxy_pixels`;
+* `vertices`: `upstream_model_3d_coordinates_unverified`;
+* `joints`: `upstream_model_3d_coordinates_unverified`;
+* `faces`: `mesh_topology_indices`.
+
+These labels are intentionally conservative. The wrapper does not yet perform coordinate correction or claim world/camera coordinate semantics for vertices or joints. Real-model smoke testing must inspect upstream outputs before these labels are promoted to a stable downstream contract.

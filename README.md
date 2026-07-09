@@ -75,3 +75,14 @@ sam3dbody infer image.png \
 Checkpoints, MHR assets, CUDA, PyTorch, Detectron2, SAM3, and other upstream inference requirements are external runtime prerequisites. They are not bundled into this wrapper package.
 
 Source archives produced by `scripts/package_source.py` intentionally exclude `third_party/sam-3d-body/` and Git metadata. Recreate upstream source locally with `sam3dbody install-upstream` after installing or unpacking the wrapper.
+
+Repeated inference should use a loaded session so weights and the upstream estimator are reused:
+
+```python
+results = session.predict_many([
+    "/path/to/frame_000.png",
+    "/path/to/frame_001.png",
+])
+```
+
+`predict_many()` currently performs ordered repeated single-image inference. It is not yet optimized tensor batching.

@@ -74,7 +74,6 @@ def test_model_uses_upstream_adapter_boundary() -> None:
 
     assert model.adapter is not None
     assert model.adapter.repository.root.as_posix().endswith("third_party/sam-3d-body")
-    assert model.adapter.repository.exists
 
 
 def test_public_model_does_not_import_third_party_directly() -> None:

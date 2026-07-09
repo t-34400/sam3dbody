@@ -123,3 +123,11 @@ Invalid public inputs must fail with a wrapper-owned input error before upstream
 Real upstream prediction currently requires CUDA because the upstream estimator moves inference batches to the literal device string `"cuda"` internally.
 
 The wrapper may continue to accept a device value at model-load time because the upstream load function accepts one. However, public prediction must not imply working CPU inference. Until upstream device handling is wrapped or patched, prediction with a non-CUDA configured device must fail before calling upstream inference.
+
+## Initial Batch Pipeline
+
+The first `predict_many()` pipeline is ordered repeated single-image inference.
+
+For each input image, the wrapper must run the same validation and conversion path used by `predict()`. The implementation may reuse the loaded upstream estimator but must not bypass single-image validation.
+
+If one image fails validation or upstream inference, the method may raise immediately and does not need to return partial results in the initial contract.

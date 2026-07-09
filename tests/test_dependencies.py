@@ -3,8 +3,12 @@ from pathlib import Path
 from sam3dbody.adapters import Sam3DBodyUpstreamAdapter
 
 
-def test_upstream_dependency_inspection_is_static() -> None:
-    report = Sam3DBodyUpstreamAdapter.from_source_tree().inspect_dependencies()
+def test_upstream_dependency_inspection_is_static(tmp_path: Path) -> None:
+    upstream_root = tmp_path / "sam-3d-body"
+    upstream_root.mkdir()
+    (upstream_root / "demo.py").write_text("import torch\nimport cv2\nimport sam_3d_body\n")
+
+    report = Sam3DBodyUpstreamAdapter.from_repository_root(upstream_root).inspect_dependencies()
 
     assert report.files_scanned > 0
     assert "torch" in report.external_modules
@@ -13,8 +17,12 @@ def test_upstream_dependency_inspection_is_static() -> None:
     assert "sam_3d_body" not in report.external_modules
 
 
-def test_upstream_dependency_report_is_serializable() -> None:
-    payload = Sam3DBodyUpstreamAdapter.from_source_tree().inspect_dependencies().to_dict()
+def test_upstream_dependency_report_is_serializable(tmp_path: Path) -> None:
+    upstream_root = tmp_path / "sam-3d-body"
+    upstream_root.mkdir()
+    (upstream_root / "demo.py").write_text("import torch\n")
+
+    payload = Sam3DBodyUpstreamAdapter.from_repository_root(upstream_root).inspect_dependencies().to_dict()
 
     assert isinstance(payload["repository_root"], str)
     assert isinstance(payload["external_modules"], list)

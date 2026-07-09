@@ -120,3 +120,24 @@ The session is the preferred API for real upstream inference because checkpoint 
 Public prediction must validate image input, optional boxes, masks, camera intrinsics, threshold values, inference type, and configured execution device before invoking upstream inference.
 
 Real upstream prediction is CUDA-only in the current integration because the upstream estimator moves inference batches to `"cuda"` internally. A non-CUDA `device` may still be preserved in the immutable model configuration and passed to the loader, but prediction with that loaded session is unsupported until upstream device handling is wrapped or patched.
+
+## Initial Batch Prediction Contract
+
+The first batch-oriented public API is ordered repeated single-image inference, not optimized tensor batch inference.
+
+The public methods are:
+
+```python
+session.predict_many(images, **single_image_options)
+model.predict_many(images, **single_image_options)
+```
+
+`images` must be an iterable of single-image inputs accepted by `predict()`. A single `str` or `Path` is not accepted as `images` because that is ambiguous with one path-like image input.
+
+The method returns `list[Sam3DBodyResult]` with one result per input image. Result order must match input order. An empty iterable returns an empty list.
+
+The initial implementation applies one shared set of prediction options to every image. Per-image boxes, masks, camera intrinsics, and thresholds are not part of the initial contract.
+
+The initial implementation may call the upstream single-image estimator repeatedly. It must not claim optimized tensor batching until real upstream behavior has been verified with the actual model.
+
+A loaded `Sam3DBodySession` must reuse already-loaded weights and the session estimator across `predict_many()` calls. `Sam3DBodyModel.predict_many()` is a convenience method that may create a temporary session, matching the `predict()` compatibility behavior.

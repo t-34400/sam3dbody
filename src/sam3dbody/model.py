@@ -77,3 +77,28 @@ class Sam3DBodyModel:
             use_mask=use_mask,
             inference_type=inference_type,
         )
+
+    def predict_many(
+        self,
+        images: Any,
+        *,
+        bboxes: Any | None = None,
+        masks: Any | None = None,
+        cam_int: Any | None = None,
+        bbox_thr: float = 0.5,
+        nms_thr: float = 0.3,
+        use_mask: bool = False,
+        inference_type: str = "full",
+    ) -> list[Sam3DBodyResult]:
+        """Run ordered repeated prediction using a temporary loaded session."""
+        session = self.load()
+        return session.predict_many(
+            images,
+            bboxes=bboxes,
+            masks=masks,
+            cam_int=cam_int,
+            bbox_thr=bbox_thr,
+            nms_thr=nms_thr,
+            use_mask=use_mask,
+            inference_type=inference_type,
+        )

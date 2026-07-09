@@ -145,6 +145,13 @@ def _convert_upstream_outputs(
             model_name="sam-3d-body",
             device=loaded_model.load_config.device,
             extra={
+                "output_schema_version": "0.1",
+                "coordinate_conventions": {
+                    "bbox_xyxy": "upstream_output_image_xyxy_pixels",
+                    "vertices": "upstream_model_3d_coordinates_unverified",
+                    "joints": "upstream_model_3d_coordinates_unverified",
+                    "faces": "mesh_topology_indices",
+                },
                 "upstream_fields": sorted(upstream_outputs[0].keys())
                 if upstream_outputs and isinstance(upstream_outputs[0], dict)
                 else [],

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from collections.abc import Iterable
 from typing import Any
 
 from .adapters.loader import Sam3DBodyLoadedModel
 from .adapters.upstream import Sam3DBodyPredictionOptions, Sam3DBodyUpstreamAdapter
 from .result import Sam3DBodyResult
+from .validation import Sam3DBodyInputError
 
 
 @dataclass
@@ -52,6 +54,49 @@ class Sam3DBodySession:
             options=options,
             estimator=self._get_estimator(),
         )
+
+
+    def predict_many(
+        self,
+        images: Iterable[str | Path | Any],
+        *,
+        bboxes: Any | None = None,
+        masks: Any | None = None,
+        cam_int: Any | None = None,
+        bbox_thr: float = 0.5,
+        nms_thr: float = 0.3,
+        use_mask: bool = False,
+        inference_type: str = "full",
+    ) -> list[Sam3DBodyResult]:
+        """Run ordered repeated single-image prediction with one loaded session."""
+        if isinstance(images, (str, Path)):
+            raise Sam3DBodyInputError("images must be an iterable of image inputs, not a single path-like image.")
+        try:
+            image_list = list(images)
+        except TypeError as exc:
+            raise Sam3DBodyInputError("images must be an iterable of image inputs.") from exc
+
+        estimator = self._get_estimator()
+        results: list[Sam3DBodyResult] = []
+        for image in image_list:
+            options = Sam3DBodyPredictionOptions(
+                bboxes=bboxes,
+                masks=masks,
+                cam_int=cam_int,
+                bbox_thr=bbox_thr,
+                nms_thr=nms_thr,
+                use_mask=use_mask,
+                inference_type=inference_type,
+            )
+            results.append(
+                self.adapter.predict(
+                    image,
+                    self.loaded_model,
+                    options=options,
+                    estimator=estimator,
+                )
+            )
+        return results
 
     def _get_estimator(self) -> Any:
         if self._estimator is None:
