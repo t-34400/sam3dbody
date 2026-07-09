@@ -61,6 +61,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="print the environment report as JSON",
     )
+    check_env.add_argument(
+        "--strict",
+        action="store_true",
+        help="exit with status 1 when the environment is not ready for inference",
+    )
 
     infer = subcommands.add_parser(
         "infer",
@@ -192,6 +197,8 @@ def _run_check_env(args: argparse.Namespace) -> int:
         print("modules:")
         for module, available in payload["modules"].items():
             print(f"  - {module}: {available}")
+    if args.strict and not report.ready_for_inference:
+        return 1
     return 0
 
 def _run_infer(args: argparse.Namespace) -> int:

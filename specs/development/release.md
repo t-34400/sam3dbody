@@ -74,3 +74,5 @@ The selected approach must specify:
 Until this TODO is resolved, source checkouts with initialized submodules are the only supported development layout for upstream integration work.
 
 A diagnostic command may report missing upstream source, missing checkpoints, missing inference dependencies, and CUDA availability. Such diagnostics do not satisfy this TODO unless they also define and implement the setup or download behavior.
+
+For CI or scripted validation, diagnostic commands may provide a strict mode that returns a non-zero exit status when required inference prerequisites are missing. Strict diagnostics are still validation aids only and must not mutate the filesystem or install upstream assets.

@@ -36,7 +36,7 @@ Without `--json`, the command prints a human-readable summary.
 ## Environment Check Command
 
 ```text
-sam3dbody check-env [--upstream-root PATH] [--weights PATH] [--mhr-path PATH] [--json]
+sam3dbody check-env [--upstream-root PATH] [--weights PATH] [--mhr-path PATH] [--json] [--strict]
 ```
 
 `check-env` reports local prerequisites for real upstream inference without importing upstream modules, loading checkpoints, or running inference.
@@ -57,6 +57,8 @@ third_party/sam-3d-body
 ```
 
 When `--json` is provided, the command prints a JSON object using the wrapper-owned environment report schema. Without `--json`, the command prints a human-readable summary.
+
+By default, `check-env` exits with status code `0` after reporting diagnostics, even when the environment is not inference-ready. When `--strict` is provided, the command exits with status code `0` only if the report is ready for inference, and exits with status code `1` otherwise.
 
 `check-env` is diagnostic only. It must not attempt to initialize Git submodules, clone upstream repositories, download checkpoints, import upstream modules, or mutate the filesystem.
 
