@@ -1,8 +1,8 @@
 # sam3dbody
 
-Python wrapper for SAM 3D Body.
+Installable Python package for the upstream SAM 3D Body project.
 
-`sam3dbody` provides a wrapper-owned Python API and CLI around the upstream SAM 3D Body implementation. The wrapper keeps the upstream source separate and unmodified.
+`sam3dbody` provides a stable Python API and CLI for the official Meta SAM 3D Body implementation (https://github.com/facebookresearch/sam-3d-body). The wrapper keeps the upstream source separate and unmodified, allowing applications to depend on `sam3dbody` instead of an upstream checkout.
 
 ## Quick Start
 
