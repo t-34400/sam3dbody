@@ -53,9 +53,11 @@ result = model.predict(image)
 
 ## License and upstream terms
 
-This repository contains the wrapper only.
+The wrapper code in this repository is dedicated to the public domain under CC0 1.0.
 
-The upstream SAM 3D Body source code and official model assets are distributed separately by Meta and remain subject to their respective license terms.
+The upstream SAM 3D Body source code and official model assets are distributed separately by Meta and remain subject to their own license terms.
+
+See `licenses/SAM-LICENSE.txt` for the upstream license notice.
 
 - Upstream: https://github.com/facebookresearch/sam-3d-body
 - Models: https://huggingface.co/facebook/sam-3d-body-dinov3/tree/main
